@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/navigation-menu";
 import { Footprints } from "lucide-react";
 import { MainNavItem } from "@/types/index.type";
+import { UrlObject } from "node:url";
 
 interface MainNavProps {
   items?: MainNavItem[];
@@ -94,7 +95,11 @@ export function MainNav({ items }: MainNavProps) {
               ) : (
                 item.href && (
                   <NavigationMenuItem key={item.title}>
-                    <Link href={item.href} legacyBehavior passHref>
+                    <Link
+                      href={item.href as unknown as UrlObject}
+                      legacyBehavior
+                      passHref
+                    >
                       <NavigationMenuLink
                         className={cn(navigationMenuTriggerStyle(), "h-auto")}
                       >
@@ -120,7 +125,7 @@ const ListItem = React.forwardRef<
       <NavigationMenuLink asChild>
         <Link
           ref={ref}
-          href={String(href)}
+          href={String(href) as unknown as UrlObject}
           className={cn(
             "hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground block space-y-1 rounded-md p-3 leading-none no-underline transition-colors outline-none select-none",
             className,

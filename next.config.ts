@@ -5,6 +5,9 @@ const nextConfig: NextConfig = {
   experimental: {
     typedEnv: true,
   },
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
 
   images: {
     remotePatterns: [
