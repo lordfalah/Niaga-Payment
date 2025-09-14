@@ -1,5 +1,5 @@
 import React from "react";
-import CreateProduct from "./_components/create-product";
+import CreateProduct from "./_components/form-product";
 
 const BuildProduct: React.FC = () => {
   return (

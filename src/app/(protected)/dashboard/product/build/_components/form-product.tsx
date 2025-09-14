@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -16,7 +15,6 @@ import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { getErrorMessage } from "@/lib/handle-error";
-import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   createProductSchema,
@@ -28,8 +26,7 @@ import { AutosizeTextarea } from "@/components/ui/autosize-textarea";
 import { Loader2 } from "lucide-react";
 import { createProductAction } from "@/actions/product";
 
-const CreateProduct: React.FC = () => {
-  const router = useRouter();
+const FormProduct: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const form = useForm<TCreateProductInput>({
     resolver: zodResolver(createProductSchema),
@@ -51,20 +48,15 @@ const CreateProduct: React.FC = () => {
             if (!res.status) {
               // cek kalau ada errors di dalam response
               if ("errors" in res) {
-                if (
-                  typeof res.errors === "object" &&
-                  !Array.isArray(res.errors)
-                ) {
-                  Object.keys(res.errors).forEach((key) => {
-                    form.setError(key as keyof TCreateProductInput, {
-                      type: "server",
-                      message:
-                        (res.errors as Record<string, string>)[
-                          key as keyof TCreateProductInput
-                        ] ?? "",
-                    });
+                Object.keys(res.errors).forEach((key) => {
+                  form.setError(key as keyof TCreateProductInput, {
+                    type: "server",
+                    message:
+                      (res.errors as Record<string, string>)[
+                        key as keyof TCreateProductInput
+                      ] ?? "",
                   });
-                }
+                });
               }
 
               throw new Error(res.message || "Failed to create product");
@@ -230,4 +222,4 @@ const CreateProduct: React.FC = () => {
   );
 };
 
-export default CreateProduct;
+export default FormProduct;

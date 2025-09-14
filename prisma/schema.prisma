@@ -114,11 +114,17 @@ enum TStatusOrder {
   CANCELLED
 }
 
+enum TPayment {
+  CASH
+  QRIS
+}
+
 model Order {
   id           String       @id @default(cuid())
   customerName String       @db.VarChar(100)
   status       TStatusOrder @default(PAID)
   totalAmount  Int          @default(0)
+  payment      TPayment     @default(CASH)
 
   orderItems OrderItem[]
 
@@ -136,7 +142,7 @@ model OrderItem {
   orderId   String
   product   Product @relation(fields: [productId], references: [id], onDelete: Restrict, onUpdate: Cascade)
   productId String
-  quantity  Int
+  quantity  Int     @default(1) @db.SmallInt
   subtotal  Int // price * quantity
 
   @@map("order_item")

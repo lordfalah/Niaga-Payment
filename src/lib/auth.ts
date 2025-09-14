@@ -16,7 +16,6 @@ export const auth = betterAuth({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
       mapProfileToUser: (profile) => {
-        console.log(profile);
         return {
           firstName: profile.given_name,
           lastName: profile.family_name,
@@ -50,5 +49,5 @@ export const auth = betterAuth({
       roles,
     }),
   ],
-  trustedOrigins: ["http://localhost:3000"],
+  trustedOrigins: [process.env.NEXT_PUBLIC_APP_URL!],
 });

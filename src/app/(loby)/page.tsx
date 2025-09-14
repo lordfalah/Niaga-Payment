@@ -1,69 +1,50 @@
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardAction,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { getServerSession } from "@/lib/get-session";
+import OrderForm from "./_components/form-order";
+import { getProducts } from "@/actions/product";
+import CardLoby from "./_components/card-loby";
+import { TRole } from "@/generated/prisma";
+import OrderFormSkeleton from "./_components/form-order-skeleton";
 
 export default async function Home() {
-  const session = await getServerSession();
-  console.log(session);
+  const [session, { data }] = await Promise.all([
+    getServerSession(),
+    getProducts(),
+  ]);
 
+  // Case 1: Pengguna belum login
+  if (!session) {
+    return (
+      <CardLoby
+        title="Akses Ditolak"
+        subTitle="Anda tidak berwenang"
+        description="Silakan masuk untuk melanjutkan."
+      >
+        <OrderFormSkeleton />
+      </CardLoby>
+    );
+  }
+
+  // Case 2: Pengguna sudah login tetapi memiliki peran 'USER' (tidak diizinkan membuat order)
+  if (session.user.role === TRole.USER) {
+    return (
+      <CardLoby
+        title="Akses Ditolak"
+        subTitle="Anda tidak memiliki wewenang untuk membuat order."
+        description="Akses untuk membuat order hanya tersedia untuk peran tertentu. Silakan hubungi administrator Anda."
+      >
+        <OrderFormSkeleton />
+      </CardLoby>
+    );
+  }
+
+  // Case 3: Pengguna sudah login dengan peran yang diizinkan
   return (
-    <div className="grid min-h-screen items-center justify-items-center gap-16">
-      <Card className="w-full max-w-sm">
-        <CardHeader>
-          <CardTitle>Login to your account</CardTitle>
-          <CardDescription>
-            Enter your email below to login to your account
-          </CardDescription>
-          <CardAction>
-            <Button variant="link">Sign Up</Button>
-          </CardAction>
-        </CardHeader>
-        <CardContent>
-          <form>
-            <div className="flex flex-col gap-6">
-              <div className="grid gap-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="m@example.com"
-                  required
-                />
-              </div>
-              <div className="grid gap-2">
-                <div className="flex items-center">
-                  <Label htmlFor="password">Password</Label>
-                  <a
-                    href="#"
-                    className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
-                  >
-                    Forgot your password?
-                  </a>
-                </div>
-                <Input id="password" type="password" required />
-              </div>
-            </div>
-          </form>
-        </CardContent>
-        <CardFooter className="flex-col gap-2">
-          <Button type="submit" className="w-full">
-            Login
-          </Button>
-          <Button variant="outline" className="w-full">
-            Login with Google
-          </Button>
-        </CardFooter>
-      </Card>
-    </div>
+    <CardLoby
+      title="Niaga Order"
+      subTitle={`Buat Order oleh ${session.user.name}`}
+      description="Silakan isi formulir di bawah ini untuk membuat order baru."
+    >
+      <OrderForm products={data} user={session.user} />
+    </CardLoby>
   );
 }

@@ -10,7 +10,7 @@ const links = {
 };
 
 export const siteConfig = {
-  name: "Wasshoes",
+  name: "Niaga",
   description:
     "An open source e-commerce skateshop build with everything new in Next.js.",
   url: "https://skateshop.sadmn.com",

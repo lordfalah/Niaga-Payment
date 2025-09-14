@@ -1,11 +1,9 @@
 "use client";
 
 import {
-  IconCreditCard,
   IconDotsVertical,
   IconLogout,
   IconNotification,
-  IconUserCircle,
 } from "@tabler/icons-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -27,6 +25,10 @@ import {
 import { signOut, useSession } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { useState } from "react";
+import { abbreviationName } from "@/lib/utils";
+import Link from "next/link";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export function NavUser({
   user,
@@ -38,35 +40,44 @@ export function NavUser({
   };
 }) {
   const { isMobile } = useSidebar();
+  const [pending, setPending] = useState(false);
   const router = useRouter();
-  const session = useSession();
-  const profileImg = session.data
-    ? (session.data.user.image ?? "https://github.com/shadcn.png")
-    : user.avatar;
-  const emailUser = session.data ? session.data.user.email : user.email;
-  const nameUser = session.data ? session.data.user.name : user.name;
+  const { isPending } = useSession();
 
+  const initial = abbreviationName(user.name);
   return (
     <SidebarMenu>
       <SidebarMenuItem>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <SidebarMenuButton
-              size="lg"
-              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-            >
-              <Avatar className="h-8 w-8 rounded-lg grayscale">
-                <AvatarImage src={profileImg} alt={nameUser} />
-                <AvatarFallback className="rounded-lg">CN</AvatarFallback>
-              </Avatar>
-              <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">{nameUser}</span>
-                <span className="text-muted-foreground truncate text-xs">
-                  {emailUser}
-                </span>
-              </div>
-              <IconDotsVertical className="ml-auto size-4" />
-            </SidebarMenuButton>
+            {isPending ? (
+              <SidebarMenuButton
+                size="lg"
+                className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+              >
+                <Skeleton className="size-8 rounded-full" />
+                <IconDotsVertical className="ml-auto size-4" />
+              </SidebarMenuButton>
+            ) : (
+              <SidebarMenuButton
+                size="lg"
+                className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+              >
+                <Avatar className="h-8 w-8 rounded-lg grayscale">
+                  <AvatarImage src={user.avatar} alt={user.name} />
+                  <AvatarFallback className="rounded-lg">
+                    {initial}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="grid flex-1 text-left text-sm leading-tight">
+                  <span className="truncate font-medium">{user.name}</span>
+                  <span className="text-muted-foreground truncate text-xs">
+                    {user.email}
+                  </span>
+                </div>
+                <IconDotsVertical className="ml-auto size-4" />
+              </SidebarMenuButton>
+            )}
           </DropdownMenuTrigger>
           <DropdownMenuContent
             className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
@@ -77,29 +88,38 @@ export function NavUser({
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
-                  <AvatarImage src={profileImg} alt={nameUser} />
+                  <AvatarImage src={user.avatar} alt={user.name} />
                   <AvatarFallback className="rounded-lg">CN</AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">{nameUser}</span>
+                  <span className="truncate font-medium">{user.name}</span>
                   <span className="text-muted-foreground truncate text-xs">
-                    {emailUser}
+                    {user.email}
                   </span>
                 </div>
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <IconNotification />
-                Notifications
+              <DropdownMenuItem asChild>
+                <Link href={"/dashboard/setting"} className="flex items-center">
+                  <IconNotification />
+                  Setting
+                </Link>
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem
+              disabled={pending}
               onClick={async () =>
                 await signOut({
                   fetchOptions: {
+                    onRequest: () => {
+                      setPending(true);
+                    },
+                    onResponse: () => {
+                      setPending(false);
+                    },
                     onSuccess: () => {
                       router.push("/");
                     },

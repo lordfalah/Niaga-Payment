@@ -21,7 +21,9 @@ function getIsDateRange(value: DateSelection): value is DateRange {
   return value && typeof value === "object" && !Array.isArray(value);
 }
 
-function parseAsDate(timestamp: number | string | undefined): Date | undefined {
+export function parseAsDate(
+  timestamp: number | string | undefined,
+): Date | undefined {
   if (!timestamp) return undefined;
   const numericTimestamp =
     typeof timestamp === "string" ? Number(timestamp) : timestamp;

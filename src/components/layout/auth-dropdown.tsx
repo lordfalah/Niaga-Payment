@@ -16,18 +16,21 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TRole } from "@/generated/prisma";
-import { getServerSession } from "@/lib/get-session";
 import { auth } from "@/lib/auth";
 import { LogoutEverywhereButton } from "../logout-everywhere";
 import { redirect } from "next/navigation";
 import BtnSubmitWithLoad from "../btn-submit-load";
+import { UserWithRole } from "better-auth/plugins/admin";
+import { Session } from "better-auth";
 
 interface AuthDropdownProps
   extends React.ComponentPropsWithRef<typeof DropdownMenuTrigger>,
-    ButtonProps {}
+    ButtonProps {
+  promisesession: Promise<{ session: Session; user: UserWithRole } | null>;
+}
 
 export async function AuthDropdown({ className, ...props }: AuthDropdownProps) {
-  const session = await getServerSession();
+  const session = await props.promisesession;
 
   if (!session) {
     return (
@@ -70,7 +73,7 @@ export async function AuthDropdown({ className, ...props }: AuthDropdownProps) {
             <AvatarImage
               src={
                 session.user.image
-                  ? "session.user.image"
+                  ? session.user.image
                   : "/images/logo/avatar-fallback.png"
               }
               alt={session.user.name ?? "avatar-fallback"}
@@ -115,7 +118,6 @@ export async function AuthDropdown({ className, ...props }: AuthDropdownProps) {
 }
 
 async function AuthDropdownGroup({ role }: { role: TRole }) {
-  console.log(role);
   return (
     <DropdownMenuGroup>
       {/* Jika role adalah ADMIN ATAU SUPERADMIN, tampilkan Dashboard DAN Settings */}

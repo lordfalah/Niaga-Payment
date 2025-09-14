@@ -11,7 +11,7 @@ import {
 } from "@/components/data-table/data-table-action-bar";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
-import { Product } from "@/generated/prisma";
+import { Category, Product } from "@/generated/prisma";
 import { exportTableToCSV } from "@/lib/export";
 import { deleteProducts } from "@/actions/product";
 
@@ -21,7 +21,7 @@ const actions = ["export", "delete"] as const;
 type Action = (typeof actions)[number];
 
 interface OrderTableActionBarProps {
-  table: Table<Product>;
+  table: Table<Product & { category: Category | null }>;
 }
 
 export function ProductTableActionBar({ table }: OrderTableActionBarProps) {

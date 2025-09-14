@@ -8,6 +8,7 @@ import { fontHeading } from "@/lib/fonts";
 import { GeistSans } from "geist/font/sans";
 import NextTopLoader from "nextjs-toploader";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
+import { siteConfig } from "@/config/site";
 
 export const viewport: Viewport = {
   colorScheme: "dark light",
@@ -15,11 +16,58 @@ export const viewport: Viewport = {
     { media: "(prefers-color-scheme: light)", color: "white" },
     { media: "(prefers-color-scheme: dark)", color: "black" },
   ],
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 };
 
 export const metadata: Metadata = {
-  title: "Niaga",
-  description: "Technical Test Dibimbing",
+  metadataBase: new URL(`${process.env.NEXT_PUBLIC_APP_URL}`),
+  title: {
+    default: siteConfig.name,
+    template: `%s - ${siteConfig.name}`,
+  },
+  description: siteConfig.description,
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+    },
+  },
+  keywords: [
+    "nextjs",
+    "react",
+    "react server components",
+    "shop",
+    "wasshoes",
+    "tailwind",
+    "shadcn",
+  ],
+  authors: [
+    {
+      name: "mrr_falhalla",
+      url: "https://portofolio-lyart-six.vercel.app/",
+    },
+  ],
+  creator: "Irfin_Falah",
+  openGraph: {
+    type: "website",
+    locale: "id",
+    url: siteConfig.url,
+    title: siteConfig.name,
+    description: siteConfig.description,
+    siteName: siteConfig.name,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: siteConfig.name,
+    description: siteConfig.description,
+    images: [`${siteConfig.url}/og.jpg`],
+    creator: "@mrr.falah",
+  },
 };
 
 export default function RootLayout({

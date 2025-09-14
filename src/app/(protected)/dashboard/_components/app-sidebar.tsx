@@ -2,24 +2,13 @@
 
 import * as React from "react";
 import {
-  IconCamera,
-  IconChartBar,
+  IconCategory,
   IconDashboard,
-  IconDatabase,
-  IconFileAi,
-  IconFileDescription,
-  IconFileWord,
-  IconFolder,
-  IconHelp,
   IconInnerShadowTop,
-  IconListDetails,
-  IconReport,
-  IconSearch,
   IconSettings,
+  IconShoppingCart,
   IconUsers,
 } from "@tabler/icons-react";
-
-import { NavDocuments } from "@/app/(protected)/dashboard/_components/nav-documents";
 import { NavMain } from "@/app/(protected)/dashboard/_components/nav-main";
 import { NavSecondary } from "@/app/(protected)/dashboard/_components/nav-secondary";
 import { NavUser } from "@/app/(protected)/dashboard/_components/nav-user";
@@ -33,6 +22,8 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import Link from "next/link";
+import { UserWithRole } from "better-auth/plugins/admin";
+import { TRole } from "@/generated/prisma";
 
 const data = {
   user: {
@@ -45,93 +36,45 @@ const data = {
       title: "Dashboard",
       url: "/dashboard",
       icon: IconDashboard,
+      roles: [TRole.SUPERADMIN, TRole.AUTHOR],
     },
     {
       title: "Product",
       url: "/dashboard/product",
-      icon: IconFolder,
+      icon: IconShoppingCart,
+      roles: [TRole.SUPERADMIN, TRole.AUTHOR],
     },
     {
       title: "Team",
       url: "/dashboard/team",
       icon: IconUsers,
+      roles: [TRole.SUPERADMIN, TRole.AUTHOR],
+    },
+    {
+      title: "Category",
+      url: "/dashboard/category",
+      icon: IconCategory,
+      roles: [TRole.SUPERADMIN, TRole.AUTHOR],
     },
   ],
-  navClouds: [
-    {
-      title: "Capture",
-      icon: IconCamera,
-      isActive: true,
-      url: "#",
-      items: [
-        {
-          title: "Active Proposals",
-          url: "#",
-        },
-        {
-          title: "Archived",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Proposal",
-      icon: IconFileDescription,
-      url: "#",
-      items: [
-        {
-          title: "Active Proposals",
-          url: "#",
-        },
-        {
-          title: "Archived",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Prompts",
-      icon: IconFileAi,
-      url: "#",
-      items: [
-        {
-          title: "Active Proposals",
-          url: "#",
-        },
-        {
-          title: "Archived",
-          url: "#",
-        },
-      ],
-    },
-  ],
+
   navSecondary: [
     {
       title: "Settings",
-      url: "#",
+      url: "/dashboard/setting",
       icon: IconSettings,
-    },
-  ],
-  documents: [
-    {
-      name: "Data Library",
-      url: "#",
-      icon: IconDatabase,
-    },
-    {
-      name: "Reports",
-      url: "#",
-      icon: IconReport,
-    },
-    {
-      name: "Word Assistant",
-      url: "#",
-      icon: IconFileWord,
     },
   ],
 };
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+export function AppSidebar({
+  ...props
+}: React.ComponentProps<typeof Sidebar> & { user: UserWithRole }) {
+  const { role, image, name, email } = props.user;
+  const navItems = data.navMain.filter((item) =>
+    item.roles.includes(role as never),
+  );
+
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
@@ -150,12 +93,17 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
-        <NavDocuments items={data.documents} />
+        <NavMain items={navItems} />
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser
+          user={{
+            avatar: image ? image : "https://github.com/shadcn.png",
+            name,
+            email,
+          }}
+        />
       </SidebarFooter>
     </Sidebar>
   );

@@ -3,7 +3,7 @@
 import { Checkbox } from "@/components/ui/checkbox";
 import { ColumnDef } from "@tanstack/react-table";
 import { CalendarSearch, Text } from "lucide-react";
-import { Fragment, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useDataTable } from "@/hooks/use-data-table";
 import { DataTable } from "@/components/data-table/data-table";
 import {
@@ -38,6 +38,7 @@ import { TRole } from "@/generated/prisma";
 import { admin } from "@/lib/auth-client";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 const DataTableTeam: React.FC<{
   data: Array<UserWithRole>;
@@ -98,6 +99,31 @@ const DataTableTeam: React.FC<{
         },
 
         enableColumnFilter: true,
+        enableSorting: false,
+      },
+
+      {
+        id: "avatar",
+        accessorKey: "image",
+        header: "Avatar",
+
+        cell: ({ row }) => {
+          const profileImg = row.original.image
+            ? row.original.image
+            : "https://github.com/shadcn.png";
+
+          return (
+            <Image
+              className="size-8 rounded-lg sm:size-10"
+              src={profileImg}
+              alt={row.original.name}
+              width={80}
+              height={80}
+              priority
+            />
+          );
+        },
+        enableColumnFilter: false,
         enableSorting: false,
       },
 

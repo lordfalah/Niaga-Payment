@@ -58,3 +58,7 @@ export function formatDateToMonthDayYear(dateObj: Date) {
   // yyyy: tahun 4 digit
   return format(dateObj, "MMMM d, yyyy");
 }
+
+export function isObjectLike(value: object) {
+  return Object.prototype.toString.call(value) === "[object Object]";
+}

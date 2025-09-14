@@ -5,6 +5,7 @@ import { headers } from "next/headers";
 import DataTableTeam from "./_components/table/data-table-team";
 import { searchParamsCacheUser } from "@/lib/search-params/search-user";
 import { getServerSession } from "@/lib/get-session";
+import { TRole } from "@/generated/prisma";
 
 type PageProps = {
   searchParams: Promise<SearchParams>;
@@ -19,7 +20,6 @@ const DashboardPageTeam: React.FC<PageProps> = async ({ searchParams }) => {
         searchValue: search.name,
         searchField: "name",
         searchOperator: "contains",
-
         limit: search.perPage,
         offset: (search.page - 1) * search.perPage,
         sortBy: search.sort?.[0]?.id || "createdAt",
@@ -31,11 +31,29 @@ const DashboardPageTeam: React.FC<PageProps> = async ({ searchParams }) => {
   ]);
 
   if (!session) throw new Error("Not Authorized");
+  const filterUsers = users.filter(({ role }) => {
+    if (session.user.role === TRole.AUTHOR) {
+      // Author tidak boleh lihat author lain
+      return role !== TRole.AUTHOR;
+    }
+
+    if (session.user.role === TRole.SUPERADMIN) {
+      // Superadmin hanya boleh lihat User dan Admin
+      return role === TRole.USER || role === TRole.ADMIN;
+    }
+
+    // fallback → tampilkan semua
+    return true;
+  });
 
   return (
     <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
       <div className="px-4 lg:px-6">
-        <DataTableTeam dataUser={session.user} data={users} total={total} />
+        <DataTableTeam
+          dataUser={session.user}
+          data={filterUsers}
+          total={total}
+        />
       </div>
     </div>
   );

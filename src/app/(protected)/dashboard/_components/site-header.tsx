@@ -1,6 +1,5 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { BreadcrumbWithCustomSeparator } from "./bread-crumb-with-custom-separator";
@@ -20,7 +19,6 @@ export function SiteHeader() {
         />
 
         <BreadcrumbWithCustomSeparator breadCrumbName={segements} />
-        {/* <h1 className="text-base font-medium">Documents</h1> */}
         <div className="ml-auto flex items-center gap-2">
           <ModeToggle />
         </div>

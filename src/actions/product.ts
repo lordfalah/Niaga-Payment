@@ -13,12 +13,11 @@ import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { revalidatePath } from "next/cache";
 import { connection } from "next/server";
 
-export async function getProducts(input: GetProductSchema) {
+export async function getProductsWithFilters(input: GetProductSchema) {
   await connection();
 
   try {
     const { page, perPage, sort, price, name, createdAt } = input;
-
     const skip = (page - 1) * perPage;
 
     const orderBy = sort.length
@@ -26,22 +25,26 @@ export async function getProducts(input: GetProductSchema) {
       : [{ createdAt: "desc" }];
 
     // filter
-    const where: Prisma.ProductWhereInput = {};
+    const where: Prisma.ProductWhereInput = {
+      ...(name && {
+        name: {
+          contains: name,
+          mode: "insensitive",
+        },
+      }),
 
-    if (name) {
-      where.name = { contains: name, mode: "insensitive" };
-    }
+      ...(price !== null &&
+        price !== undefined && {
+          price,
+        }),
 
-    if (price !== null && price !== undefined) {
-      where.price = price;
-    }
-
-    if (createdAt.length === 2) {
-      where.createdAt = {
-        gte: new Date(createdAt[0]),
-        lte: new Date(createdAt[1]),
-      };
-    }
+      ...(createdAt.length === 2 && {
+        createdAt: {
+          gte: new Date(createdAt[0]),
+          lte: new Date(createdAt[1]),
+        },
+      }),
+    };
 
     const [data, total] = await Promise.all([
       prisma.product.findMany({
@@ -49,6 +52,9 @@ export async function getProducts(input: GetProductSchema) {
         orderBy,
         skip,
         take: perPage,
+        include: {
+          category: true,
+        },
       }),
       prisma.product.count({ where }),
     ]);
@@ -62,6 +68,33 @@ export async function getProducts(input: GetProductSchema) {
     return {
       status: false,
       message: getErrorMessage(err) || "Failed to fetch products",
+      data: { data: [], total: 0, page: 0, perPage: 0 },
+    };
+  }
+}
+
+export async function getProducts() {
+  await connection();
+
+  try {
+    const products = await prisma.product.findMany({
+      select: {
+        id: true,
+        name: true,
+        price: true,
+      },
+    });
+
+    return {
+      status: true,
+      data: products,
+      message: "Products fetched successfully",
+    };
+  } catch (error) {
+    return {
+      status: false,
+      message: getErrorMessage(error) || "Failed to fetch products",
+      data: [],
     };
   }
 }
@@ -113,29 +146,22 @@ export async function updateProductAction(id: string, formData: unknown) {
 
     const product = await prisma.product.update({
       where: { id },
-      data: parsed.data,
+      data: {
+        ...parsed.data,
+        category: {
+          connect: {
+            id: parsed.data.category,
+          },
+        },
+      },
     });
+
+    revalidatePath("/dashboard/product");
 
     return {
       status: true,
       message: "Produk berhasil diperbarui",
       data: product,
-    };
-  } catch (error) {
-    if (error instanceof PrismaClientKnownRequestError) {
-      return ActionErrorHandler.handlePrisma(error);
-    }
-    return ActionErrorHandler.handleDefault(error);
-  }
-}
-
-export async function deleteProduct(id: string) {
-  try {
-    await prisma.product.delete({ where: { id } });
-
-    return {
-      status: true,
-      message: "Produk berhasil dihapus",
     };
   } catch (error) {
     if (error instanceof PrismaClientKnownRequestError) {
@@ -165,5 +191,17 @@ export async function deleteProducts({ ids }: { ids: string[] }) {
       data: null,
       error: getErrorMessage(error),
     };
+  }
+}
+
+export async function getTotalProduct() {
+  await connection();
+  try {
+    const result = await prisma.product.count();
+    return result;
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  } catch (error) {
+    return 0;
   }
 }

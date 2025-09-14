@@ -11,24 +11,16 @@ import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
 import { parseAsInteger, useQueryStates } from "nuqs";
 import { DataTableSortList } from "@/components/data-table/data-table-sort-list";
-import { Product } from "@/generated/prisma";
-
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
-import { IconDotsVertical } from "@tabler/icons-react";
+import { Category, Product } from "@/generated/prisma";
+import EditProduct from "../edit-product";
 import { ProductTableActionBar } from "./product-table-action-bar";
 
 const DataTableProduct: React.FC<{
-  data: Array<Product>;
+  data: Array<Product & { category: Category | null }>;
   total: number;
-}> = ({ data, total }) => {
-  const columns = useMemo<ColumnDef<Product>[]>(
+  categorys: Category[];
+}> = ({ data, total, categorys }) => {
+  const columns = useMemo<ColumnDef<Product & { category: Category | null }>[]>(
     () => [
       {
         id: "select",
@@ -86,6 +78,25 @@ const DataTableProduct: React.FC<{
       },
 
       {
+        id: "description",
+        accessorKey: "description",
+        header: "Description",
+
+        cell: ({ row }) => (
+          <div className="w-40 text-wrap break-all">
+            {row.original.description}
+          </div>
+        ),
+
+        meta: {
+          label: "Description",
+        },
+
+        enableColumnFilter: false,
+        enableSorting: false,
+      },
+
+      {
         id: "price",
         accessorKey: "price",
         header: ({ column }) => (
@@ -103,6 +114,21 @@ const DataTableProduct: React.FC<{
         },
 
         enableColumnFilter: true,
+      },
+
+      {
+        id: "category",
+        accessorKey: "category",
+        header: "Category",
+
+        cell: ({ row }) => (
+          <div className="w-28 text-wrap break-all">
+            {row.original.category?.name ?? "Kosong"}
+          </div>
+        ),
+
+        enableColumnFilter: false,
+        enableSorting: false,
       },
 
       {
@@ -127,30 +153,12 @@ const DataTableProduct: React.FC<{
 
       {
         id: "actions",
-        cell: () => (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                className="data-[state=open]:bg-muted text-muted-foreground flex size-8"
-                size="icon"
-              >
-                <IconDotsVertical />
-                <span className="sr-only">Open menu</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-32">
-              <DropdownMenuItem>Edit</DropdownMenuItem>
-              <DropdownMenuItem>Make a copy</DropdownMenuItem>
-              <DropdownMenuItem>Favorite</DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem variant="destructive">Delete</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        ),
+        cell: ({ row }) => {
+          return <EditProduct categorys={categorys} data={row.original} />;
+        },
       },
     ],
-    [],
+    [categorys],
   );
 
   const [params] = useQueryStates({

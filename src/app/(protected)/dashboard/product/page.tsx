@@ -1,4 +1,4 @@
-import { getProducts } from "@/actions/product";
+import { getProductsWithFilters } from "@/actions/product";
 import { searchParamsCacheProduct } from "@/lib/search-params/search-product";
 import { SearchParams } from "nuqs";
 import React, { Suspense } from "react";
@@ -8,6 +8,7 @@ import { Loader2 } from "lucide-react";
 import PrintTablePdf from "@/components/data-table/print-table-pdf";
 import TablePdfProduct from "./_components/table/data-table-product-pdf";
 import Link from "next/link";
+import { getCategorys } from "@/actions/category";
 
 type PageProps = {
   searchParams: Promise<SearchParams>;
@@ -15,17 +16,15 @@ type PageProps = {
 
 const DashboardPageProduct: React.FC<PageProps> = async ({ searchParams }) => {
   const search = searchParamsCacheProduct.parse(await searchParams);
-
-  const { data: resultProduct } = await getProducts(search);
-
-  if (!resultProduct) throw new Error("error");
+  const [{ data: resultProducts }, { data: resultCategorys }] =
+    await Promise.all([getProductsWithFilters(search), getCategorys()]);
 
   return (
     <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
       <div className="px-4 lg:px-6">
         <div className="flex items-center justify-between">
           <Suspense
-            key={resultProduct.data.length}
+            key={resultProducts.data.length}
             fallback={
               <Button
                 type="button"
@@ -40,7 +39,7 @@ const DashboardPageProduct: React.FC<PageProps> = async ({ searchParams }) => {
             }
           >
             <PrintTablePdf
-              document={<TablePdfProduct data={resultProduct.data} />}
+              document={<TablePdfProduct data={resultProducts.data} />}
               fileName="laporan-order.pdf"
               className="flex w-0 pb-2 pl-1"
             />
@@ -52,8 +51,9 @@ const DashboardPageProduct: React.FC<PageProps> = async ({ searchParams }) => {
         </div>
 
         <DataTableProduct
-          data={resultProduct.data}
-          total={resultProduct.total}
+          data={resultProducts.data}
+          categorys={resultCategorys}
+          total={resultProducts.total}
         />
       </div>
     </div>

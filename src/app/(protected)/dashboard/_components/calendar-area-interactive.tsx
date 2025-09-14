@@ -2,9 +2,7 @@
 
 import * as React from "react";
 import { CalendarIcon } from "lucide-react";
-import { DateRange } from "react-day-picker";
 import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
-
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -27,67 +25,80 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-
-const chartData = [
-  { date: "2025-06-01", visitors: 178 },
-  { date: "2025-06-02", visitors: 470 },
-  { date: "2025-06-03", visitors: 103 },
-  { date: "2025-06-04", visitors: 439 },
-  { date: "2025-06-05", visitors: 88 },
-  { date: "2025-06-06", visitors: 294 },
-  { date: "2025-06-07", visitors: 323 },
-  { date: "2025-06-08", visitors: 385 },
-  { date: "2025-06-09", visitors: 438 },
-  { date: "2025-06-10", visitors: 155 },
-  { date: "2025-06-11", visitors: 92 },
-  { date: "2025-06-12", visitors: 492 },
-  { date: "2025-06-13", visitors: 81 },
-  { date: "2025-06-14", visitors: 426 },
-  { date: "2025-06-15", visitors: 307 },
-  { date: "2025-06-16", visitors: 371 },
-  { date: "2025-06-17", visitors: 475 },
-  { date: "2025-06-18", visitors: 107 },
-  { date: "2025-06-19", visitors: 341 },
-  { date: "2025-06-20", visitors: 408 },
-  { date: "2025-06-21", visitors: 169 },
-  { date: "2025-06-22", visitors: 317 },
-  { date: "2025-06-23", visitors: 480 },
-  { date: "2025-06-24", visitors: 132 },
-  { date: "2025-06-25", visitors: 141 },
-  { date: "2025-06-26", visitors: 434 },
-  { date: "2025-06-27", visitors: 448 },
-  { date: "2025-06-28", visitors: 149 },
-  { date: "2025-06-29", visitors: 103 },
-  { date: "2025-06-30", visitors: 446 },
-];
-
-const total = chartData.reduce((acc, curr) => acc + curr.visitors, 0);
+import { endOfMonth, format, startOfMonth } from "date-fns";
+import { parseAsArrayOf, useQueryStates } from "nuqs";
+import z from "zod";
+import { parseAsDate } from "@/components/data-table/data-table-date-filter";
 
 const chartConfig = {
-  visitors: {
-    label: "Visitors",
+  totalOrders: {
+    label: "Order",
+    color: "var(--color-primary)",
+  },
+  totalRevenue: {
+    label: "Revenue",
     color: "var(--color-primary)",
   },
 } satisfies ChartConfig;
 
-export default function CalenderAreaInteractive() {
-  const [range, setRange] = React.useState<DateRange | undefined>({
-    from: new Date(2025, 5, 5),
-    to: new Date(2025, 5, 20),
-  });
+export default function CalenderAreaInteractive({
+  analytics,
+}: {
+  analytics: { totalOrders: number; totalRevenue: number; date: string }[];
+}) {
+  // Ambil tanggal saat ini
+  const today = new Date();
+
+  // Hitung tanggal awal dan akhir bulan dari tanggal saat ini
+  const startOfThisMonth = startOfMonth(today);
+  const endOfThisMonth = endOfMonth(today);
+
+  // Menggunakan parseAsArrayOf dengan z.coerce.number() untuk createdAtAnalytic
+  const [range, setRange] = useQueryStates(
+    {
+      createdAtAnalytic: parseAsArrayOf(z.coerce.number()).withDefault([
+        startOfThisMonth.getTime(),
+        endOfThisMonth.getTime(),
+      ]),
+    },
+    {
+      shallow: false,
+    },
+  );
+
   const filteredData = React.useMemo(() => {
-    if (!range?.from && !range?.to) {
-      return chartData;
+    if (!range.createdAtAnalytic || range.createdAtAnalytic.length < 2) {
+      return analytics;
     }
 
-    return chartData.filter((item) => {
+    const [from, to] = range.createdAtAnalytic;
+
+    return analytics.filter((item) => {
       const date = new Date(item.date);
-      return date >= range.from! && date <= range.to!;
+      return date.getTime() >= from! && date.getTime() <= to!;
     });
-  }, [range]);
+  }, [range, analytics]);
+
+  const totalOrders = filteredData.reduce(
+    (acc, cur) => acc + cur.totalOrders,
+    0,
+  );
+  const totalRevenue = filteredData.reduce(
+    (acc, cur) => acc + cur.totalRevenue,
+    0,
+  );
+
+  // Mengonversi timestamps dari URL kembali ke objek Date untuk ditampilkan
+  const dateFrom = range.createdAtAnalytic
+    ? parseAsDate(range.createdAtAnalytic[0])
+    : undefined;
+  const dateTo = range.createdAtAnalytic
+    ? parseAsDate(range.createdAtAnalytic[1])
+    : undefined;
+  const isRangeValid = dateFrom && dateTo;
 
   return (
-    <Card className="@container/card w-full max-w-xl">
+    <Card className="@container/card w-full">
       <CardHeader className="flex flex-col border-b @md/card:grid">
         <CardTitle>Web Analytics</CardTitle>
         <CardDescription>
@@ -98,25 +109,51 @@ export default function CalenderAreaInteractive() {
             <PopoverTrigger asChild>
               <Button variant="outline">
                 <CalendarIcon />
-                {range?.from && range?.to
-                  ? `${range.from.toLocaleDateString()} - ${range.to.toLocaleDateString()}`
-                  : "June 2025"}
+                <span className="hidden sm:block">
+                  {isRangeValid
+                    ? `${format(dateFrom, "PPP")} - ${format(dateTo, "PPP")}`
+                    : `Month of ${format(today, "MMMM")}`}
+                </span>
+                <span className="block sm:hidden">
+                  {isRangeValid
+                    ? `${dateFrom.toLocaleDateString()} - ${dateTo.toLocaleDateString()}`
+                    : `Month of ${format(today, "MMMM")}`}
+                </span>
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto overflow-hidden p-0" align="end">
               <Calendar
                 className="w-full"
                 mode="range"
-                defaultMonth={range?.from}
-                selected={range}
-                onSelect={setRange}
-                disableNavigation
-                startMonth={range?.from}
+                defaultMonth={isRangeValid ? dateFrom : undefined}
+                selected={
+                  isRangeValid ? { from: dateFrom, to: dateTo } : undefined
+                }
+                onSelect={(newRange) => {
+                  if (newRange?.from && newRange?.to) {
+                    setRange({
+                      createdAtAnalytic: [
+                        newRange.from.getTime(),
+                        newRange.to.getTime(),
+                      ],
+                    });
+                  } else {
+                    setRange({
+                      createdAtAnalytic: newRange?.from?.getTime()
+                        ? [newRange.from.getTime()]
+                        : null,
+                    });
+                  }
+                }}
+                disabled={[
+                  {
+                    before: startOfThisMonth,
+                    after: endOfThisMonth,
+                  },
+                ]}
+                month={today}
                 fixedWeeks
                 showOutsideDays
-                disabled={{
-                  after: new Date(2025, 5, 31),
-                }}
               />
             </PopoverContent>
           </Popover>
@@ -153,7 +190,6 @@ export default function CalenderAreaInteractive() {
               content={
                 <ChartTooltipContent
                   className="w-[150px]"
-                  nameKey="visitors"
                   labelFormatter={(value) => {
                     return new Date(value).toLocaleDateString("en-US", {
                       month: "short",
@@ -164,15 +200,32 @@ export default function CalenderAreaInteractive() {
                 />
               }
             />
-            <Bar dataKey="visitors" fill={`var(--color-visitors)`} radius={4} />
+            <Bar
+              dataKey="totalOrders"
+              fill={`var(--color-totalOrders)`}
+              radius={4}
+              stackId="a"
+            />
+            <Bar
+              dataKey="totalRevenue"
+              fill={`var(--color-totalRevenue)`}
+              radius={4}
+              stackId="a"
+            />
           </BarChart>
         </ChartContainer>
       </CardContent>
       <CardFooter className="border-t">
         <div className="text-sm">
           You had{" "}
-          <span className="font-semibold">{total.toLocaleString()}</span>{" "}
-          visitors for the month of June.
+          <span className="font-semibold">{totalOrders.toLocaleString()}</span>{" "}
+          orders in this period.
+        </div>
+        <div className="text-sm">
+          Total Revenue:{" "}
+          <span className="font-semibold">
+            Rp {totalRevenue.toLocaleString("id-ID")}
+          </span>
         </div>
       </CardFooter>
     </Card>
