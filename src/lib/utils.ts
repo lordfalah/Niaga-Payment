@@ -62,3 +62,30 @@ export function formatDateToMonthDayYear(dateObj: Date) {
 export function isObjectLike(value: object) {
   return Object.prototype.toString.call(value) === "[object Object]";
 }
+
+export const hitungCRC16 = (input: string): string => {
+  let crc = 0xffff;
+  for (let i = 0; i < input.length; i++) {
+    crc ^= input.charCodeAt(i) << 8;
+    for (let j = 0; j < 8; j++) {
+      crc = crc & 0x8000 ? (crc << 1) ^ 0x1021 : crc << 1;
+    }
+  }
+  return ("0000" + (crc & 0xffff).toString(16).toUpperCase()).slice(-4);
+};
+
+export const buatStringQris = (nominal: number): string => {
+  if (!process.env.DATA_STATIS_QRIS)
+    throw new Error("Data QRIS statis tidak ditemukan.");
+  const qris = process.env.DATA_STATIS_QRIS.slice(0, -4).replace(
+    "010211",
+    "010212",
+  );
+  const [bagian1, bagian2] = qris.split("5802ID");
+  const bagianJumlah = `54${nominal
+    .toString()
+    .length.toString()
+    .padStart(2, "0")}${nominal}5802ID`;
+  const output = bagian1 + bagianJumlah + bagian2;
+  return output + hitungCRC16(output);
+};

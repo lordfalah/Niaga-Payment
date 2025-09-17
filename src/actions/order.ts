@@ -1,19 +1,32 @@
 "use server";
 
-import { Prisma, TStatusOrder } from "@/generated/prisma";
+import {
+  Order,
+  Prisma,
+  TPayment,
+  TRole,
+  TStatusOrder,
+} from "@/generated/prisma";
 import ActionErrorHandler from "@/lib/action-error-handler";
+import { getServerSession } from "@/lib/get-session";
 import { getErrorMessage } from "@/lib/handle-error";
 import prisma from "@/lib/prisma";
 import {
   GetAnalyticSchema,
   GetOrderSchema,
 } from "@/lib/search-params/search-order";
+import { buatStringQris } from "@/lib/utils";
+import { TActionResult } from "@/types/action.type";
 import { createOrderSchema } from "@/validation/order.schema";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { revalidatePath } from "next/cache";
-import { connection } from "next/server";
+import { after, connection } from "next/server";
+import QRCode from "qrcode";
 
-export async function getOrdersWithFilters(input: GetOrderSchema) {
+export async function getOrdersWithFilters(
+  input: GetOrderSchema,
+  userId?: string,
+) {
   await connection();
 
   try {
@@ -36,6 +49,10 @@ export async function getOrdersWithFilters(input: GetOrderSchema) {
 
     // filter
     const where: Prisma.OrderWhereInput = {
+      ...(userId && {
+        userId,
+      }),
+
       ...(customerName && {
         customerName: { contains: customerName, mode: "insensitive" },
       }),
@@ -125,7 +142,9 @@ export async function getOrdersWithFilters(input: GetOrderSchema) {
   }
 }
 
-export async function createOrderAction(body: unknown, userId: string) {
+export async function createOrderAction(
+  body: unknown,
+): Promise<TActionResult<Order>> {
   const parsed = createOrderSchema.safeParse(body);
 
   if (!parsed.success) {
@@ -133,12 +152,14 @@ export async function createOrderAction(body: unknown, userId: string) {
   }
 
   try {
+    const { customerName, payment, status, createdById, items } = parsed.data;
+
     // Hitung totalAmount
     const products = await prisma.product.findMany({
-      where: { id: { in: parsed.data.items.map((i) => i.productId) } },
+      where: { id: { in: items.map((i) => i.productId) } },
     });
 
-    const orderItems = parsed.data.items.map((item) => {
+    const orderItems = items.map((item) => {
       const product = products.find((p) => p.id === item.productId);
       if (!product) throw new Error("Produk tidak ditemukan");
 
@@ -151,15 +172,37 @@ export async function createOrderAction(body: unknown, userId: string) {
 
     const totalAmount = orderItems.reduce((sum, i) => sum + i.subtotal, 0);
 
+    const orderData: Prisma.OrderCreateInput = {
+      customerName,
+      payment,
+      status: payment === TPayment.CASH ? TStatusOrder.PAID : status,
+      totalAmount,
+      user: { connect: { id: createdById } }, // relasi ke User
+      orderItems: { create: orderItems },
+    };
+
+    // Kalau pakai QRIS → generate QR
+    if (payment === TPayment.QRIS) {
+      if (!process.env.DATA_STATIS_QRIS) {
+        return {
+          status: false as const,
+          message: "Konfigurasi QRIS belum diisi",
+          errors: null,
+        };
+      }
+
+      const stringQris = buatStringQris(totalAmount);
+      const dataUrlQris = await QRCode.toDataURL(stringQris, {
+        errorCorrectionLevel: "H",
+        margin: 2,
+        width: 256,
+      });
+
+      orderData.qrisData = dataUrlQris;
+    }
+
     const order = await prisma.order.create({
-      data: {
-        customerName: parsed.data.customerName,
-        totalAmount,
-        userId,
-        orderItems: {
-          create: orderItems,
-        },
-      },
+      data: orderData,
       include: { orderItems: true },
     });
 
@@ -171,13 +214,21 @@ export async function createOrderAction(body: unknown, userId: string) {
       message: "Order berhasil dibuat",
     };
   } catch (error) {
-    if (error instanceof PrismaClientKnownRequestError) {
-      // Prisma error
-      return ActionErrorHandler.handlePrisma(error);
-    }
+    after(() => {
+      if (error instanceof PrismaClientKnownRequestError) {
+        // Prisma error
+        console.error(ActionErrorHandler.handlePrisma(error));
+      } else {
+        // Default handler
+        console.error(ActionErrorHandler.handleDefault(error));
+      }
+    });
 
-    // Default handler
-    return ActionErrorHandler.handleDefault(error);
+    return {
+      status: false,
+      errors: null,
+      message: getErrorMessage(error),
+    };
   }
 }
 
@@ -289,6 +340,30 @@ export async function getRevenueChartData(input: GetAnalyticSchema) {
           date: new Date(Date.now()).toISOString().split("T")[0],
         },
       ],
+      error: getErrorMessage(error),
+    };
+  }
+}
+
+/**
+ * Update status order.
+ */
+export async function updateOrderStatus(orderId: string, status: TStatusOrder) {
+  try {
+    await prisma.order.update({
+      where: { id: orderId },
+      data: { status },
+    });
+
+    return {
+      status: true,
+      data: `Status order ${orderId} berhasil diubah ke ${status}`,
+      error: null,
+    };
+  } catch (error) {
+    return {
+      status: false,
+      data: null,
       error: getErrorMessage(error),
     };
   }

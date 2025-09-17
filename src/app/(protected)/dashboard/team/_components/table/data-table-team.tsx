@@ -39,6 +39,7 @@ import { admin } from "@/lib/auth-client";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { showErrorToast } from "@/lib/handle-error";
 
 const DataTableTeam: React.FC<{
   data: Array<UserWithRole>;
@@ -171,7 +172,7 @@ const DataTableTeam: React.FC<{
                 onRequest: () => setPending(true),
                 onResponse: () => setPending(false),
                 onError: (ctx) => {
-                  toast.error(ctx.error.message);
+                  showErrorToast(ctx.error.message);
                 },
                 onSuccess: () => {
                   toast.success(`User Role Updated`, {

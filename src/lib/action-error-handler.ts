@@ -61,7 +61,7 @@ class ActionErrorHandler {
     );
 
     return {
-      status: false,
+      status: false as const,
       message: "Validation error",
       errors,
     };

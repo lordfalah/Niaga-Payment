@@ -27,9 +27,10 @@ import { OrderWithLineItems } from "@/types/order.type";
 const DataTableOrder: React.FC<{
   data: Array<OrderWithLineItems>;
   total: number;
-}> = ({ data, total }) => {
-  const columns = useMemo<ColumnDef<OrderWithLineItems>[]>(
-    () => [
+  orderBy: boolean;
+}> = ({ data, total, orderBy = true }) => {
+  const columns = useMemo<ColumnDef<OrderWithLineItems>[]>(() => {
+    const baseColumns: ColumnDef<OrderWithLineItems>[] = [
       {
         id: "select",
         header: ({ table }) => (
@@ -55,7 +56,6 @@ const DataTableOrder: React.FC<{
         enableSorting: false,
         enableHiding: false,
       },
-
       {
         id: "no",
         header: "No",
@@ -64,79 +64,57 @@ const DataTableOrder: React.FC<{
         enableSorting: false,
         enableHiding: false,
       },
-
       {
         id: "customerName",
         accessorKey: "customerName",
         header: "Customer Name",
-
         cell: ({ row }) => (
           <div className="w-40 text-wrap break-all">
             {row.original.customerName}
           </div>
         ),
-
         meta: {
           label: "Customer Name",
           placeholder: "Search Customer...",
           variant: "text",
           icon: Text,
         },
-
         enableColumnFilter: true,
         enableSorting: false,
       },
-
       {
         id: "payment",
         accessorKey: "payment",
         header: ({ column }) => (
           <DataTableColumnHeader column={column} title="Payment" />
         ),
-
-        cell: ({ row }) => {
-          return (
-            <div className="w-28 text-wrap break-all">
-              {row.original.payment}
-            </div>
-          );
-        },
-
-        meta: {
-          label: "Payment",
-        },
-
+        cell: ({ row }) => (
+          <div className="w-28 text-wrap break-all">{row.original.payment}</div>
+        ),
+        meta: { label: "Payment" },
         enableColumnFilter: true,
         enableSorting: true,
       },
-
       {
         id: "totalAmount",
         accessorKey: "totalAmount",
         header: ({ column }) => (
           <DataTableColumnHeader column={column} title="Total Price" />
         ),
-
         cell: ({ row }) => (
           <div className="w-28 text-wrap break-all">
             <p>Rp. {formatToRupiah(row.original.totalAmount)}</p>
           </div>
         ),
-
-        meta: {
-          label: "Total Price",
-        },
-
+        meta: { label: "Total Price" },
         enableColumnFilter: true,
       },
-
       {
         id: "status",
         accessorKey: "status",
         header: ({ column }) => (
           <DataTableColumnHeader column={column} title="Status Transaction" />
         ),
-
         cell: ({ row }) => (
           <Badge
             variant="outline"
@@ -150,51 +128,17 @@ const DataTableOrder: React.FC<{
             {row.original.status}
           </Badge>
         ),
-
         meta: {
           label: "Status",
           variant: "multiSelect",
           options: [
-            {
-              label: "Paid",
-              value: TStatusOrder.PAID,
-              icon: CheckCircle,
-            },
-            {
-              label: "Cancel",
-              value: TStatusOrder.CANCELLED,
-              icon: XCircle,
-            },
-            {
-              label: "Pending",
-              value: TStatusOrder.PENDING,
-              icon: Loader2,
-            },
+            { label: "Paid", value: TStatusOrder.PAID, icon: CheckCircle },
+            { label: "Cancel", value: TStatusOrder.CANCELLED, icon: XCircle },
+            { label: "Pending", value: TStatusOrder.PENDING, icon: Loader2 },
           ],
         },
         enableColumnFilter: true,
       },
-
-      {
-        id: "userId",
-        accessorKey: "userId",
-        header: "Employer",
-
-        cell: ({ row }) => {
-          return (
-            <div className="w-40 text-wrap break-all">
-              {row.original.user.name}
-            </div>
-          );
-        },
-        meta: {
-          label: "Employer",
-        },
-
-        enableColumnFilter: false,
-        enableSorting: false,
-      },
-
       {
         id: "createdAt",
         accessorKey: "createdAt",
@@ -204,26 +148,39 @@ const DataTableOrder: React.FC<{
             <p>{formatDateToMonthDayYear(row.original.createdAt)}</p>
           </div>
         ),
-
         meta: {
           label: "Date",
           placeholder: "Search date...",
           variant: "dateRange",
           icon: CalendarSearch,
         },
-
         enableColumnFilter: true,
       },
-
       {
         id: "actions",
-        cell: ({ row }) => {
-          return <DetailOrder data={row.original} />;
-        },
+        cell: ({ row }) => <DetailOrder data={row.original} />,
       },
-    ],
-    [],
-  );
+    ];
+
+    // Kondisional → hanya push kolom Employer jika orderBy === true
+    if (orderBy) {
+      baseColumns.splice(baseColumns.length - 2, 0, {
+        id: "userId",
+        accessorKey: "userId",
+        header: "Employer",
+        cell: ({ row }) => (
+          <div className="w-40 text-wrap break-all">
+            {row.original.user.name}
+          </div>
+        ),
+        meta: { label: "Employer" },
+        enableColumnFilter: false,
+        enableSorting: false,
+      });
+    }
+
+    return baseColumns;
+  }, [orderBy]);
 
   const [params] = useQueryStates({
     page: parseAsInteger.withDefault(1),

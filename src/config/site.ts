@@ -21,21 +21,9 @@ export const siteConfig = {
       title: "Lobby",
       items: [
         {
-          title: "Invoice",
-          href: "/invoice",
-          description: "All the products we have to offer.",
-          items: [],
-        },
-        {
           title: "History Invoice",
-          href: "/invoice/history",
+          href: "/history",
           description: "Build your own custom skateboard.",
-          items: [],
-        },
-        {
-          title: "Products",
-          href: "/products",
-          description: "Read our latest blog posts.",
           items: [],
         },
       ],

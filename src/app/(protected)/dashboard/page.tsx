@@ -2,7 +2,6 @@ import React, { Suspense } from "react";
 import { SectionCards } from "@/app/(protected)/dashboard/_components/section-cards";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
-import PrintTablePdf from "@/components/data-table/print-table-pdf";
 import DataTableOrder from "./_components/table/data-table-order";
 import { getOrdersWithFilters, getRevenueChartData } from "@/actions/order";
 import { SearchParams } from "nuqs";
@@ -53,7 +52,11 @@ const DashboardRoot: React.FC<PageProps> = async ({ searchParams }) => {
           </Suspense>
         </div>
 
-        <DataTableOrder data={resultOrders.data} total={resultOrders.total} />
+        <DataTableOrder
+          orderBy={true}
+          data={resultOrders.data}
+          total={resultOrders.total}
+        />
       </div>
     </div>
   );

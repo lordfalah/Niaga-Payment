@@ -122,11 +122,11 @@ enum TPayment {
 model Order {
   id           String       @id @default(cuid())
   customerName String       @db.VarChar(100)
-  status       TStatusOrder @default(PAID)
+  status       TStatusOrder @default(PENDING)
   totalAmount  Int          @default(0)
   payment      TPayment     @default(CASH)
-
-  orderItems OrderItem[]
+  qrisData     String?      @db.Text
+  orderItems   OrderItem[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

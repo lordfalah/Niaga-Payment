@@ -20,5 +20,7 @@ export function getErrorMessage(err: unknown) {
 
 export function showErrorToast(err: unknown) {
   const errorMessage = getErrorMessage(err);
-  return toast.error(errorMessage);
+  return toast.error(errorMessage, {
+    position: "top-center",
+  });
 }

@@ -1,10 +1,15 @@
+import { TPayment, TStatusOrder } from "@/generated/prisma";
 import z from "zod";
 
 export const orderItemInputSchema = z.object({
   productId: z
     .string({ error: "Product harus diisi" })
     .min(6, "Product harus diisi"),
-  quantity: z.number().int(),
+  quantity: z
+    .number({ error: "Angka!" })
+    .int()
+    .min(1, "Minimal 1")
+    .max(99, "Maximal 99"),
   // subtotal dihitung di server dari price * quantity → jangan terima dari client
 });
 
@@ -13,6 +18,9 @@ export const createOrderSchema = z.object({
     .string()
     .min(3, "Nama pelanggan wajib diisi")
     .max(100, "Maksimal 100 karakter"),
+
+  payment: z.enum(TPayment),
+  status: z.enum(TStatusOrder),
 
   // admin pembuat order (id user)
   createdById: z
