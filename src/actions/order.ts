@@ -1,14 +1,7 @@
 "use server";
 
-import {
-  Order,
-  Prisma,
-  TPayment,
-  TRole,
-  TStatusOrder,
-} from "@/generated/prisma";
+import { Order, Prisma, TPayment, TStatusOrder } from "@/generated/prisma";
 import ActionErrorHandler from "@/lib/action-error-handler";
-import { getServerSession } from "@/lib/get-session";
 import { getErrorMessage } from "@/lib/handle-error";
 import prisma from "@/lib/prisma";
 import {
@@ -345,9 +338,6 @@ export async function getRevenueChartData(input: GetAnalyticSchema) {
   }
 }
 
-/**
- * Update status order.
- */
 export async function updateOrderStatus(orderId: string, status: TStatusOrder) {
   try {
     await prisma.order.update({
@@ -366,5 +356,37 @@ export async function updateOrderStatus(orderId: string, status: TStatusOrder) {
       data: null,
       error: getErrorMessage(error),
     };
+  }
+}
+
+export async function updateOrders({
+  ids,
+  status,
+  path,
+}: {
+  ids: string[];
+  status?: TStatusOrder;
+  path?: string;
+}) {
+  try {
+    const orders = await prisma.order.updateManyAndReturn({
+      where: {
+        id: { in: ids },
+      },
+
+      data: {
+        status,
+      },
+    });
+
+    revalidatePath(path ?? "/dashboard");
+    return {
+      data: orders,
+      error: null,
+      status: true,
+    };
+  } catch (error) {
+    console.log(error);
+    return { data: null, error: getErrorMessage(error), status: false };
   }
 }

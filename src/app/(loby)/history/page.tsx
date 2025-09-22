@@ -12,6 +12,7 @@ import {
 import { TRole } from "@/generated/prisma";
 import { getServerSession } from "@/lib/get-session";
 import { searchParamsCacheOrder } from "@/lib/search-params/search-order";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { SearchParams } from "nuqs";
 import React from "react";
@@ -34,15 +35,17 @@ const PageHistory: React.FC<PageProps> = async ({ searchParams }) => {
   );
 
   return (
-    <section className="container min-h-screen px-4 pt-28 pb-14 sm:px-6">
+    <section className="container px-4 pt-28 pb-14 sm:px-6">
       <Card>
         <CardHeader>
-          <CardTitle>Login to your account</CardTitle>
+          <CardTitle>Riwayat Pesanan</CardTitle>
           <CardDescription>
-            Enter your email below to login to your account
+            Telusuri pesanan berdasarkan pelanggan, status, atau tanggal
           </CardDescription>
           <CardAction>
-            <Button variant="link">Sign Up</Button>
+            <Button variant="link" asChild>
+              <Link href={"/"}>Loby</Link>
+            </Button>
           </CardAction>
         </CardHeader>
 

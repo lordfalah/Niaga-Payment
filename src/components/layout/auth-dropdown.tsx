@@ -1,6 +1,6 @@
 import * as React from "react";
 import Link from "next/link";
-import { DashboardIcon, GearIcon } from "@radix-ui/react-icons";
+import { DashboardIcon, ExitIcon, GearIcon } from "@radix-ui/react-icons";
 import { abbreviationName, cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button, type ButtonProps } from "@/components/ui/button";
@@ -14,7 +14,6 @@ import {
   DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Skeleton } from "@/components/ui/skeleton";
 import { TRole } from "@/generated/prisma";
 import { auth } from "@/lib/auth";
 import { LogoutEverywhereButton } from "../logout-everywhere";
@@ -22,6 +21,9 @@ import { redirect } from "next/navigation";
 import BtnSubmitWithLoad from "../btn-submit-load";
 import { UserWithRole } from "better-auth/plugins/admin";
 import { Session } from "better-auth";
+import { Skeleton } from "../ui/skeleton";
+import { ShoppingCart } from "lucide-react";
+import { headers } from "next/headers";
 
 interface AuthDropdownProps
   extends React.ComponentPropsWithRef<typeof DropdownMenuTrigger>,
@@ -50,11 +52,9 @@ export async function AuthDropdown({ className, ...props }: AuthDropdownProps) {
           }
         }}
       >
-        <BtnSubmitWithLoad
-          variant="default"
-          className={cn(className)}
-          label="Sign In"
-        />
+        <BtnSubmitWithLoad variant="default" className={cn(className)}>
+          <span>Sign In</span>
+        </BtnSubmitWithLoad>
       </form>
     );
   }
@@ -97,6 +97,7 @@ export async function AuthDropdown({ className, ...props }: AuthDropdownProps) {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
+
         <React.Suspense
           fallback={
             <div className="flex flex-col space-y-1.5 p-1">
@@ -108,9 +109,26 @@ export async function AuthDropdown({ className, ...props }: AuthDropdownProps) {
         >
           <AuthDropdownGroup role={session.user.role as TRole} />
         </React.Suspense>
+
         <DropdownMenuSeparator />
-        <DropdownMenuItem asChild>
-          <LogoutEverywhereButton />
+        <DropdownMenuItem>
+          <form
+            className="w-full"
+            action={async () => {
+              "use server";
+
+              await auth.api.signOut({ headers: await headers() });
+            }}
+          >
+            <BtnSubmitWithLoad
+              variant="destructive"
+              className="flex w-full items-center justify-between gap-x-4"
+            >
+              <ExitIcon className="size-4" aria-hidden="true" />
+              <span>Log out</span>
+              <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
+            </BtnSubmitWithLoad>
+          </form>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
@@ -121,9 +139,7 @@ async function AuthDropdownGroup({ role }: { role: TRole }) {
   return (
     <DropdownMenuGroup>
       {/* Jika role adalah ADMIN ATAU SUPERADMIN, tampilkan Dashboard DAN Settings */}
-      {(role === TRole.ADMIN ||
-        role === TRole.SUPERADMIN ||
-        role === TRole.AUTHOR) && (
+      {(role === TRole.SUPERADMIN || role === TRole.AUTHOR) && (
         <React.Fragment>
           <DropdownMenuItem asChild>
             <Link href={"/dashboard"}>
@@ -142,13 +158,21 @@ async function AuthDropdownGroup({ role }: { role: TRole }) {
         </React.Fragment>
       )}
 
-      {/* Jika role BUKAN ADMIN dan BUKAN SUPERADMIN, tapi masih perlu Settings (misal: USER biasa) */}
-      {role === TRole.USER && (
+      {(role === TRole.USER || role === TRole.ADMIN) && (
         <DropdownMenuItem asChild>
-          <Link href="/dashboard/setting">
+          <Link href="/setting">
             <GearIcon className="mr-2 size-4" aria-hidden="true" />
             Settings
             <DropdownMenuShortcut>⌘S</DropdownMenuShortcut>
+          </Link>
+        </DropdownMenuItem>
+      )}
+
+      {role === TRole.ADMIN && (
+        <DropdownMenuItem asChild>
+          <Link href="/history">
+            <ShoppingCart className="mr-2 size-4" aria-hidden="true" />
+            Riwayat Pesanan
           </Link>
         </DropdownMenuItem>
       )}

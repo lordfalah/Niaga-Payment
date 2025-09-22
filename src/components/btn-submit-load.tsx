@@ -43,7 +43,7 @@ interface BtnSubmitWithLoadProps {
     | "destructive"
     | "secondary";
 
-  label: string;
+  children: React.ReactNode;
 }
 
 const BtnSubmitWithLoad: React.FC<BtnSubmitWithLoadProps> = ({
@@ -51,7 +51,7 @@ const BtnSubmitWithLoad: React.FC<BtnSubmitWithLoadProps> = ({
   iconName = "CircleX", // Nilai default sebagai string
   className,
   variant = "outline",
-  label,
+  children,
 }) => {
   const { pending } = useFormStatus();
 
@@ -68,11 +68,7 @@ const BtnSubmitWithLoad: React.FC<BtnSubmitWithLoadProps> = ({
       type="submit"
       variant={variant}
     >
-      {pending ? (
-        <Loader2 className="size-4 animate-spin" />
-      ) : (
-        <span>{label}</span>
-      )}
+      {pending ? <Loader2 className="size-4 animate-spin" /> : children}
     </Button>
   );
 };

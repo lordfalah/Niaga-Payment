@@ -20,7 +20,7 @@ import {
   createProductSchema,
   TCreateProductInput,
 } from "@/validation/product.schema";
-import { cn } from "@/lib/utils";
+import { cn, isObjectLike } from "@/lib/utils";
 import { NumericFormat } from "react-number-format";
 import { AutosizeTextarea } from "@/components/ui/autosize-textarea";
 import { Loader2 } from "lucide-react";
@@ -45,19 +45,13 @@ const FormProduct: React.FC = () => {
           try {
             const res = await createProductAction(data);
 
-            if (!res.status) {
-              // cek kalau ada errors di dalam response
-              if ("errors" in res) {
-                Object.keys(res.errors).forEach((key) => {
-                  form.setError(key as keyof TCreateProductInput, {
-                    type: "server",
-                    message:
-                      (res.errors as Record<string, string>)[
-                        key as keyof TCreateProductInput
-                      ] ?? "",
-                  });
+            if (!res.status && res.errors && typeof isObjectLike(res.errors)) {
+              Object.keys(res.errors).forEach((key) => {
+                form.setError(key as keyof TCreateProductInput, {
+                  type: "server",
+                  message: res.errors[key as keyof TCreateProductInput],
                 });
-              }
+              });
 
               throw new Error(res.message || "Failed to create product");
             }

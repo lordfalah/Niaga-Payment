@@ -1,14 +1,15 @@
 "use server";
 
-import { Prisma } from "@/generated/prisma";
+import { Category, Prisma } from "@/generated/prisma";
 import ActionErrorHandler from "@/lib/action-error-handler";
 import { getErrorMessage } from "@/lib/handle-error";
 import prisma from "@/lib/prisma";
 import { GetCategorySchema } from "@/lib/search-params/search-category";
+import { TActionResult } from "@/types/action.type";
 import { createCategorySchema } from "@/validation/category.schema";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { revalidatePath } from "next/cache";
-import { connection } from "next/server";
+import { after, connection } from "next/server";
 
 export async function getCategorysWithFilters(input: GetCategorySchema) {
   await connection();
@@ -80,7 +81,9 @@ export async function getCategorys() {
   }
 }
 
-export async function createCategoryAction(formData: unknown) {
+export async function createCategoryAction(
+  formData: unknown,
+): Promise<TActionResult<Category>> {
   try {
     // 🔍 Validasi dengan Zod
     const parsed = createCategorySchema.safeParse(formData);
@@ -106,13 +109,21 @@ export async function createCategoryAction(formData: unknown) {
       data: category,
     };
   } catch (error) {
-    if (error instanceof PrismaClientKnownRequestError) {
-      // Prisma error
-      return ActionErrorHandler.handlePrisma(error);
-    }
+    after(() => {
+      if (error instanceof PrismaClientKnownRequestError) {
+        // Prisma error
+        console.error(ActionErrorHandler.handlePrisma(error));
+      } else {
+        // Default handler
+        console.error(ActionErrorHandler.handleDefault(error));
+      }
+    });
 
-    // Default handler
-    return ActionErrorHandler.handleDefault(error);
+    return {
+      status: false,
+      errors: null,
+      message: getErrorMessage(error),
+    };
   }
 }
 

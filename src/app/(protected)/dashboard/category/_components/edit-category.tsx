@@ -41,6 +41,7 @@ import {
   createCategorySchema,
   TCreateCategoryInput,
 } from "@/validation/category.schema";
+import { isObjectLike } from "@/lib/utils";
 
 const EditCategory: React.FC<{ data: Category }> = ({ data }) => {
   const [open, setOpen] = useState(false);
@@ -61,19 +62,16 @@ const EditCategory: React.FC<{ data: Category }> = ({ data }) => {
           try {
             const res = await updateProductAction(data.id, values);
 
-            if (!res.status) {
-              // cek kalau ada errors di dalam response
-              if ("errors" in res) {
-                Object.keys(res.errors).forEach((key) => {
-                  form.setError(key as keyof TCreateCategoryInput, {
-                    type: "server",
-                    message:
-                      (res.errors as Record<string, string>)[
-                        key as keyof TCreateCategoryInput
-                      ] ?? "",
-                  });
+            if (!res.status && res.errors && typeof isObjectLike(res.errors)) {
+              Object.keys(res.errors).forEach((key) => {
+                form.setError(key as keyof TCreateCategoryInput, {
+                  type: "server",
+                  message:
+                    (res.errors as Record<string, string>)[
+                      key as keyof TCreateCategoryInput
+                    ] ?? "",
                 });
-              }
+              });
 
               throw new Error(res.message || "Failed to create product");
             }

@@ -33,6 +33,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { createCategoryAction } from "@/actions/category";
+import { isObjectLike } from "@/lib/utils";
 
 const FormCategory: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -53,19 +54,13 @@ const FormCategory: React.FC = () => {
           try {
             const res = await createCategoryAction(data);
 
-            if (!res.status) {
-              // cek kalau ada errors di dalam response
-              if ("errors" in res) {
-                Object.keys(res.errors).forEach((key) => {
-                  form.setError(key as keyof TCreateCategoryInput, {
-                    type: "server",
-                    message:
-                      (res.errors as Record<string, string>)[
-                        key as keyof TCreateCategoryInput
-                      ] ?? "",
-                  });
+            if (!res.status && res.errors && typeof isObjectLike(res.errors)) {
+              Object.keys(res.errors).forEach((key) => {
+                form.setError(key as keyof TCreateCategoryInput, {
+                  type: "server",
+                  message: res.errors[key as keyof TCreateCategoryInput],
                 });
-              }
+              });
 
               throw new Error(res.message || "Failed to create product");
             }

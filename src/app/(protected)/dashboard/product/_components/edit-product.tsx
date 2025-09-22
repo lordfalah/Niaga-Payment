@@ -27,17 +27,18 @@ import {
   createProductSchema,
   TCreateProductInput,
 } from "@/validation/product.schema";
-import { cn } from "@/lib/utils";
+import { cn, isObjectLike } from "@/lib/utils";
 import { NumericFormat } from "react-number-format";
 import { AutosizeTextarea } from "@/components/ui/autosize-textarea";
 import { Check, ChevronsUpDown, Loader2 } from "lucide-react";
-import { updateProductAction } from "@/actions/product";
+import { deleteProducts, updateProductAction } from "@/actions/product";
 import { useForm } from "react-hook-form";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
+  DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { IconDotsVertical } from "@tabler/icons-react";
@@ -80,19 +81,13 @@ const EditProduct: React.FC<{
           try {
             const res = await updateProductAction(data.id, values);
 
-            if (!res.status) {
-              // cek kalau ada errors di dalam response
-              if ("errors" in res) {
-                Object.keys(res.errors).forEach((key) => {
-                  form.setError(key as keyof TCreateProductInput, {
-                    type: "server",
-                    message:
-                      (res.errors as Record<string, string>)[
-                        key as keyof TCreateProductInput
-                      ] ?? "",
-                  });
+            if (!res.status && res.errors && typeof isObjectLike(res.errors)) {
+              Object.keys(res.errors).forEach((key) => {
+                form.setError(key as keyof TCreateProductInput, {
+                  type: "server",
+                  message: res.errors[key as keyof TCreateProductInput],
                 });
-              }
+              });
 
               throw new Error(res.message || "Failed to create product");
             }
@@ -136,7 +131,25 @@ const EditProduct: React.FC<{
           <DropdownMenuItem>Make a copy</DropdownMenuItem>
           <DropdownMenuItem>Favorite</DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem variant="destructive">Delete</DropdownMenuItem>
+
+          <DropdownMenuItem
+            onClick={() => {
+              toast.promise(
+                deleteProducts({
+                  ids: [data.id],
+                }),
+                {
+                  loading: "Loading...",
+                  success: "Product deleted",
+                  error: (err) => getErrorMessage(err),
+                },
+              );
+            }}
+            variant="destructive"
+          >
+            Delete
+            <DropdownMenuShortcut>⌘⌫</DropdownMenuShortcut>
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
 

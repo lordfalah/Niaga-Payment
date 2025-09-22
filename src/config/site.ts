@@ -21,9 +21,10 @@ export const siteConfig = {
       title: "Lobby",
       items: [
         {
-          title: "History Invoice",
+          title: "Riwayat Pesanan",
           href: "/history",
-          description: "Build your own custom skateboard.",
+          description:
+            "Telusuri pesanan berdasarkan pelanggan, status, atau tanggal.",
           items: [],
         },
       ],

@@ -1,17 +1,18 @@
 "use server";
 
-import { Prisma } from "@/generated/prisma";
+import { Prisma, Product } from "@/generated/prisma";
 import ActionErrorHandler from "@/lib/action-error-handler";
 import { getErrorMessage } from "@/lib/handle-error";
 import prisma from "@/lib/prisma";
 import { GetProductSchema } from "@/lib/search-params/search-product";
+import { TActionResult } from "@/types/action.type";
 import {
   createProductSchema,
   updateProductSchema,
 } from "@/validation/product.schema";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { revalidatePath } from "next/cache";
-import { connection } from "next/server";
+import { after, connection } from "next/server";
 
 export async function getProductsWithFilters(input: GetProductSchema) {
   await connection();
@@ -99,7 +100,9 @@ export async function getProducts() {
   }
 }
 
-export async function createProductAction(formData: unknown) {
+export async function createProductAction(
+  formData: unknown,
+): Promise<TActionResult<Product>> {
   try {
     // 🔍 Validasi dengan Zod
     const parsed = createProductSchema.safeParse(formData);
@@ -125,17 +128,28 @@ export async function createProductAction(formData: unknown) {
       data: product,
     };
   } catch (error) {
-    if (error instanceof PrismaClientKnownRequestError) {
-      // Prisma error
-      return ActionErrorHandler.handlePrisma(error);
-    }
+    after(() => {
+      if (error instanceof PrismaClientKnownRequestError) {
+        // Prisma error
+        console.error(ActionErrorHandler.handlePrisma(error));
+      } else {
+        // Default handler
+        console.error(ActionErrorHandler.handleDefault(error));
+      }
+    });
 
-    // Default handler
-    return ActionErrorHandler.handleDefault(error);
+    return {
+      status: false,
+      errors: null,
+      message: getErrorMessage(error),
+    };
   }
 }
 
-export async function updateProductAction(id: string, formData: unknown) {
+export async function updateProductAction(
+  id: string,
+  formData: unknown,
+): Promise<TActionResult<Product>> {
   try {
     const parsed = updateProductSchema.partial().safeParse(formData);
     // pakai partial biar bisa update sebagian field
@@ -164,10 +178,21 @@ export async function updateProductAction(id: string, formData: unknown) {
       data: product,
     };
   } catch (error) {
-    if (error instanceof PrismaClientKnownRequestError) {
-      return ActionErrorHandler.handlePrisma(error);
-    }
-    return ActionErrorHandler.handleDefault(error);
+    after(() => {
+      if (error instanceof PrismaClientKnownRequestError) {
+        // Prisma error
+        console.error(ActionErrorHandler.handlePrisma(error));
+      } else {
+        // Default handler
+        console.error(ActionErrorHandler.handleDefault(error));
+      }
+    });
+
+    return {
+      status: false,
+      errors: null,
+      message: getErrorMessage(error),
+    };
   }
 }
 

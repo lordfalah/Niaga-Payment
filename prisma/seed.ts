@@ -11,7 +11,6 @@ async function main() {
   const categories = [
     { name: "Makanan", description: "Kategori berbagai jenis makanan." },
     { name: "Minuman", description: "Kategori berbagai jenis minuman." },
-    { name: "Snack", description: "Kategori berbagai jenis camilan." },
   ];
 
   // Insert kategori
@@ -38,9 +37,35 @@ async function main() {
       category: "Makanan",
     },
     {
+      name: "Sate Ayam",
+      description:
+        "Tusukan daging ayam panggang disajikan dengan bumbu kacang.",
+      price: 22000,
+      category: "Makanan",
+    },
+    {
+      name: "Gado-gado",
+      description: "Campuran sayuran segar dengan lontong dan saus kacang.",
+      price: 18000,
+      category: "Makanan",
+    },
+    {
+      name: "Rendang",
+      description:
+        "Daging sapi yang dimasak perlahan dalam santan dan rempah-rempah.",
+      price: 35000,
+      category: "Makanan",
+    },
+    {
       name: "Es Teh Manis",
       description: "Minuman teh segar dengan gula.",
       price: 8000,
+      category: "Minuman",
+    },
+    {
+      name: "Jus Jeruk",
+      description: "Minuman jus segar dari buah jeruk asli.",
+      price: 15000,
       category: "Minuman",
     },
     {
@@ -50,16 +75,16 @@ async function main() {
       category: "Minuman",
     },
     {
-      name: "Keripik Singkong",
-      description: "Camilan gurih renyah dari singkong.",
-      price: 10000,
-      category: "Snack",
+      name: "Air Mineral",
+      description: "Air mineral kemasan untuk menghilangkan dahaga.",
+      price: 5000,
+      category: "Minuman",
     },
     {
-      name: "Cokelat Bar",
-      description: "Cokelat batang manis nikmat.",
+      name: "Es Kelapa Muda",
+      description: "Minuman menyegarkan dari air dan daging kelapa muda.",
       price: 15000,
-      category: "Snack",
+      category: "Minuman",
     },
   ];
 

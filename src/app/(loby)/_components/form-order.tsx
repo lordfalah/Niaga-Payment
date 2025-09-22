@@ -333,7 +333,7 @@ export default function OrderForm({
                                 <SelectValue placeholder="Pilih produk" />
                               </SelectTrigger>
                             </FormControl>
-                            <SelectContent>
+                            <SelectContent className="max-h-60 overflow-y-auto">
                               {products
                                 .filter(
                                   (p) =>
