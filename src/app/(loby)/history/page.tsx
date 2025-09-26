@@ -12,10 +12,18 @@ import {
 import { TRole } from "@/generated/prisma";
 import { getServerSession } from "@/lib/get-session";
 import { searchParamsCacheOrder } from "@/lib/search-params/search-order";
+import { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { SearchParams } from "nuqs";
 import React from "react";
+
+export const metadata: Metadata = {
+  metadataBase: new URL(`${process.env.NEXT_PUBLIC_APP_URL}`),
+  title: "History Order",
+  description:
+    "Easily view and track all your past orders and transaction history in one secure place.",
+};
 
 type PageProps = {
   searchParams: Promise<SearchParams>;

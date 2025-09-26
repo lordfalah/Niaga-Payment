@@ -25,14 +25,28 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { Loader2, Trash2, Plus, X } from "lucide-react";
+import { Loader2, Trash2, Plus } from "lucide-react";
+import { useMediaQuery } from "@/hooks/use-media-query";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 import {
   createOrderSchema,
@@ -43,12 +57,14 @@ import { User } from "better-auth";
 import { Badge } from "@/components/ui/badge";
 import { createOrderAction, updateOrderStatus } from "@/actions/order";
 import { toast } from "sonner";
-import { showErrorToast } from "@/lib/handle-error";
+import { getErrorMessage, showErrorToast } from "@/lib/handle-error";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import Image from "next/image";
 import { isObjectLike } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 
+const counter = 180; // 3 menit = 180 detik
 const paymentMethods = [
   {
     name: TPayment.CASH,
@@ -69,9 +85,10 @@ export default function OrderForm({
 }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [countdown, setCountdown] = useState(300); // 5 menit = 300 detik
+  const [countdown, setCountdown] = useState(counter);
   const [qrisData, setQrisData] = useState<string | null>(null);
   const [orderId, setOrderId] = useState<string | null>(null);
+  const isDesktop = useMediaQuery("(min-width: 768px)");
   const form = useForm<TCreateOrderInput>({
     resolver: zodResolver(createOrderSchema),
     defaultValues: {
@@ -94,21 +111,29 @@ export default function OrderForm({
 
   useEffect(() => {
     if (!dialogOpen) return;
-    setCountdown(300);
 
-    const interval = setInterval(() => {
+    setCountdown(counter); // reset ke 5 menit
+    let interval: NodeJS.Timeout;
+
+    // eslint-disable-next-line prefer-const
+    interval = setInterval(() => {
       setCountdown((prev) => {
         if (prev <= 1) {
           clearInterval(interval);
           setDialogOpen(false);
+          if (orderId) {
+            updateOrderStatus(orderId, TStatusOrder.CANCELLED);
+          }
           return 0;
         }
         return prev - 1;
       });
     }, 1000);
 
-    return () => clearInterval(interval);
-  }, [dialogOpen]);
+    return () => {
+      clearInterval(interval);
+    };
+  }, [dialogOpen, orderId]);
 
   const items = form.watch("items");
 
@@ -123,45 +148,52 @@ export default function OrderForm({
 
   const onSubmit = useCallback(
     async (data: TCreateOrderInput) => {
-      const toastId = toast.loading("Loading...", { position: "top-center" });
-      setIsSubmitting(true);
-      try {
-        const res = await createOrderAction(data);
+      toast.promise(
+        async () => {
+          setIsSubmitting(true);
+          try {
+            const res = await createOrderAction(data);
 
-        // Error validasi server
-        if (!res.status && res.errors && typeof isObjectLike(res.errors)) {
-          Object.keys(res.errors).forEach((key) => {
-            form.setError(key as keyof TCreateOrderInput, {
-              type: "server",
-              message: res.errors[key],
-            });
-          });
-          throw new Error(res.message);
-        }
+            // Error validasi server
+            if (!res.status && res.errors && typeof isObjectLike(res.errors)) {
+              Object.keys(res.errors).forEach((key) => {
+                form.setError(key as keyof TCreateOrderInput, {
+                  type: "server",
+                  message: res.errors[key],
+                });
+              });
+              throw new Error(res.message);
+            }
 
-        if (res.status && data.payment === TPayment.QRIS) {
-          // success
-          // cek dulu apakah ada data & qrisData
-          const qris = res.data?.qrisData;
-          const orderId = res.data.id;
-          if (!qris || !orderId)
-            throw new Error("Data order tidak lengkap dari server");
+            if (res.status && data.payment === TPayment.QRIS) {
+              // success
+              // cek dulu apakah ada data & qrisData
+              const qris = res.data?.qrisData;
+              const orderId = res.data.id;
+              if (!qris || !orderId)
+                throw new Error(
+                  res.message || "Data order tidak lengkap dari server",
+                );
 
-          setQrisData(qris);
-          setOrderId(orderId);
-          setDialogOpen(true);
-        } else {
-          form.reset();
-          toast.success("Order Cash berhasil dibuat", {
-            position: "top-center",
-          });
-        }
-      } catch (err) {
-        showErrorToast(err);
-      } finally {
-        toast.dismiss(toastId);
-        setIsSubmitting(false);
-      }
+              setQrisData(qris);
+              setOrderId(orderId);
+              setDialogOpen(true);
+            } else {
+              form.reset();
+            }
+          } catch (err) {
+            showErrorToast(err);
+          } finally {
+            setIsSubmitting(false);
+          }
+        },
+        {
+          loading: "Simpan Pesanan...",
+          success: "Pesan berhasil disimpan!",
+          error: (err) => getErrorMessage(err),
+          position: "top-center",
+        },
+      );
     },
     [form],
   );
@@ -192,14 +224,8 @@ export default function OrderForm({
       <AlertDialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <AlertDialogContent className="w-[calc(100%-2rem)] max-w-sm">
           <AlertDialogHeader>
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-center">
               <AlertDialogTitle>Konfirmasi Pembayaran</AlertDialogTitle>
-
-              <AlertDialogCancel asChild>
-                <Button type="button" variant={"destructive"}>
-                  <X />
-                </Button>
-              </AlertDialogCancel>
             </div>
             <AlertDialogDescription>
               Silakan scan QR berikut untuk melakukan pembayaran. Waktu tersisa:{" "}
@@ -321,37 +347,105 @@ export default function OrderForm({
                     <FormField
                       control={form.control}
                       name={`items.${index}.productId`}
-                      render={({ field }) => (
-                        <FormItem className="col-span-7">
-                          <FormLabel className="ml-1">Produk</FormLabel>
-                          <Select
-                            onValueChange={field.onChange}
-                            defaultValue={field.value}
-                          >
-                            <FormControl>
-                              <SelectTrigger className="w-full truncate">
-                                <SelectValue placeholder="Pilih produk" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent className="max-h-60 overflow-y-auto">
-                              {products
-                                .filter(
-                                  (p) =>
-                                    !items.some(
-                                      (item, i) =>
-                                        i !== index && item.productId === p.id,
-                                    ),
-                                )
-                                .map((p) => (
-                                  <SelectItem key={p.id} value={p.id}>
+                      render={function Render({ field }) {
+                        const [open, setOpen] = useState(false);
+
+                        const availableProducts = products.filter(
+                          (p) =>
+                            !items.some(
+                              (item, i) =>
+                                i !== index && item.productId === p.id,
+                            ),
+                        );
+
+                        const selectedProduct = availableProducts.find(
+                          (p) => p.id === field.value,
+                        );
+
+                        const ProductList = () => (
+                          <Command>
+                            <CommandInput placeholder="Cari produk..." />
+                            <CommandList>
+                              <CommandEmpty>
+                                Produk tidak ditemukan.
+                              </CommandEmpty>
+                              <CommandGroup>
+                                {availableProducts.map((p) => (
+                                  <CommandItem
+                                    key={p.id}
+                                    value={p.name}
+                                    onSelect={() => {
+                                      field.onChange(p.id);
+                                      setOpen(false);
+                                    }}
+                                  >
                                     {p.name}
-                                  </SelectItem>
+                                  </CommandItem>
                                 ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
+                              </CommandGroup>
+                            </CommandList>
+                          </Command>
+                        );
+
+                        return (
+                          <FormItem className="col-span-7">
+                            <FormLabel className="ml-1">Produk</FormLabel>
+
+                            {isDesktop ? (
+                              <Popover open={open} onOpenChange={setOpen}>
+                                <PopoverTrigger asChild>
+                                  <FormControl>
+                                    <Button
+                                      variant="outline"
+                                      role="combobox"
+                                      className="line-clamp-1 w-full justify-between truncate text-left"
+                                    >
+                                      {selectedProduct
+                                        ? selectedProduct.name
+                                        : "+ Pilih produk"}
+                                    </Button>
+                                  </FormControl>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-[200px] p-0">
+                                  <ProductList />
+                                </PopoverContent>
+                              </Popover>
+                            ) : (
+                              <Drawer open={open} onOpenChange={setOpen}>
+                                <VisuallyHidden>
+                                  <DrawerTitle>Select Product</DrawerTitle>
+                                </VisuallyHidden>
+                                <DrawerTrigger asChild>
+                                  <FormControl>
+                                    <Button
+                                      variant="outline"
+                                      role="combobox"
+                                      className="line-clamp-1 w-full justify-between truncate text-left"
+                                    >
+                                      {selectedProduct
+                                        ? selectedProduct.name
+                                        : "+ Pilih produk"}
+                                    </Button>
+                                  </FormControl>
+                                </DrawerTrigger>
+                                <DrawerContent>
+                                  <VisuallyHidden>
+                                    <DrawerDescription>
+                                      Desc List
+                                    </DrawerDescription>
+                                  </VisuallyHidden>
+
+                                  <div className="mt-4 border-t">
+                                    <ProductList />
+                                  </div>
+                                </DrawerContent>
+                              </Drawer>
+                            )}
+
+                            <FormMessage />
+                          </FormItem>
+                        );
+                      }}
                     />
 
                     {/* Quantity */}

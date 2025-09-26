@@ -69,6 +69,7 @@ const FormProduct: React.FC = () => {
           loading: "Saving produk...",
           success: "Produk berhasil disimpan!",
           error: (err) => getErrorMessage(err),
+          position: "top-center",
         },
       );
     },
@@ -147,54 +148,6 @@ const FormProduct: React.FC = () => {
               </FormItem>
             )}
           />
-
-          {/* <FormField
-            control={form.control}
-            name="categoryId"
-            render={({ field }) => (
-              <FormItem className="col-span-12 space-y-2.5 md:col-span-6">
-                <FormLabel>Category</FormLabel>
-
-                <Select onValueChange={field.onChange} value={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a category to display" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {categorys.length > 0
-                      ? categorys.map(({ name, id }) => (
-                          <SelectItem value={id} key={id}>
-                            {name}
-                          </SelectItem>
-                        ))
-                      : "Category doesnt exsist"}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          /> */}
-
-          {/* <FormField
-            control={form.control}
-            name="isVisible"
-            render={({ field }) => (
-              <FormItem className="col-span-12 flex flex-row items-center justify-between space-y-2.5 rounded-lg border p-3 shadow-sm">
-                <div className="space-y-0.5">
-                  <FormLabel>Is visible</FormLabel>
-                  <FormDescription>Enable flag to show user</FormDescription>
-                </div>
-                <FormControl>
-                  <Switch
-                    disabled={isSubmitting}
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-              </FormItem>
-            )}
-          /> */}
 
           <Button
             type="submit"

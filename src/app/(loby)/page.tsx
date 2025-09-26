@@ -4,6 +4,14 @@ import { getProducts } from "@/actions/product";
 import CardLoby from "./_components/card-loby";
 import { TRole } from "@/generated/prisma";
 import OrderFormSkeleton from "./_components/form-order-skeleton";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  metadataBase: new URL(`${process.env.NEXT_PUBLIC_APP_URL}`),
+  title: "Complete Your Order",
+  description:
+    "Review your items, choose your shipping and payment method, and complete your secure order.",
+};
 
 export default async function Home() {
   const [session, { data }] = await Promise.all([

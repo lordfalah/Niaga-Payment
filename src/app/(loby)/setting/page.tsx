@@ -12,6 +12,14 @@ import {
 } from "@/components/ui/card";
 import { ProfileDetailsForm } from "@/app/(protected)/dashboard/setting/_components/profile-detail-form";
 import Link from "next/link";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  metadataBase: new URL(`${process.env.NEXT_PUBLIC_APP_URL}`),
+  title: "Profile Settings",
+  description:
+    "Manage and update your account details, personal information, password, and communication preferences.",
+};
 
 const PageSetting: React.FC = async () => {
   const session = await getServerSession();

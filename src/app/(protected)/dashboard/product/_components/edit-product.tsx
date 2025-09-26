@@ -142,6 +142,7 @@ const EditProduct: React.FC<{
                   loading: "Loading...",
                   success: "Product deleted",
                   error: (err) => getErrorMessage(err),
+                  position: "top-center",
                 },
               );
             }}

@@ -12,8 +12,8 @@ const links = {
 export const siteConfig = {
   name: "Niaga",
   description:
-    "An open source e-commerce skateshop build with everything new in Next.js.",
-  url: "https://skateshop.sadmn.com",
+    "A modern, open-source application for creating and managing daily customer orders easily.",
+  url: `${process.env.NEXT_PUBLIC_APP_URL!}`,
   ogImage: "https://skateshop.sadmn.com/opengraph-image.png",
   links,
   mainNav: [

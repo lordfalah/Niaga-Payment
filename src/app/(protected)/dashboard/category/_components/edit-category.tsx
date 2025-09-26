@@ -66,10 +66,7 @@ const EditCategory: React.FC<{ data: Category }> = ({ data }) => {
               Object.keys(res.errors).forEach((key) => {
                 form.setError(key as keyof TCreateCategoryInput, {
                   type: "server",
-                  message:
-                    (res.errors as Record<string, string>)[
-                      key as keyof TCreateCategoryInput
-                    ] ?? "",
+                  message: res.errors[key as keyof TCreateCategoryInput],
                 });
               });
 
