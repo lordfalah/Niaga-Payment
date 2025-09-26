@@ -9,7 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 const LoadingHistory: React.FC = () => {
   return (
-    <section className="container grid min-h-screen items-center justify-items-center gap-16 px-4 pt-28 pb-14 sm:px-6">
+    <section className="container px-4 pt-28 pb-14 sm:px-6">
       <Card className="w-full">
         <CardHeader>
           <div className="flex flex-col items-start sm:flex-row sm:items-center sm:justify-between">

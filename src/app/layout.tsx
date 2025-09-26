@@ -69,6 +69,11 @@ export const metadata: Metadata = {
     creator: "@mrr.falah",
   },
 
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+  },
+
   icons: {
     icon: [
       {
