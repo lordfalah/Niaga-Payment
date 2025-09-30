@@ -7,18 +7,18 @@ import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
 import { parseAsInteger, useQueryStates } from "nuqs";
 import { DataTableSortList } from "@/components/data-table/data-table-sort-list";
 import { OrderTableActionBar } from "./team-table-action-bar-order";
-import { OrderWithLineItems } from "@/types/order.type";
 import { DataTableRowAction } from "@/types/data-table";
 import { getOrdersTableColumns } from "./order-table-columns";
 import { DeleteOrdersDialog } from "./delete-order-dialog";
+import { TGetOrdersWithFilters } from "@/actions/order";
 
 const DataTableOrder: React.FC<{
-  data: Array<OrderWithLineItems>;
+  data: Array<TGetOrdersWithFilters>;
   total: number;
   orderBy: boolean;
 }> = ({ data, total, orderBy = true }) => {
   const [rowAction, setRowAction] =
-    useState<DataTableRowAction<OrderWithLineItems> | null>(null);
+    useState<DataTableRowAction<TGetOrdersWithFilters> | null>(null);
 
   const columns = useMemo(
     () =>
