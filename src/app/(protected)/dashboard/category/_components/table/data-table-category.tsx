@@ -10,7 +10,7 @@ import { formatDateToMonthDayYear } from "@/lib/utils";
 import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
 import { parseAsInteger, useQueryStates } from "nuqs";
 import { DataTableSortList } from "@/components/data-table/data-table-sort-list";
-import { Category } from "@/generated/prisma";
+import { Category } from "@prisma/client";
 import { CategoryTableActionBar } from "./team-table-action-bar-category";
 import EditCategory from "../edit-category";
 

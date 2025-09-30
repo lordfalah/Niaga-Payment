@@ -5,7 +5,7 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { cookies } from "next/headers";
 import { getServerSession } from "@/lib/get-session";
 import { redirect } from "next/navigation";
-import { TRole } from "@/generated/prisma";
+import { TRole } from "@prisma/client";
 
 const Dashboardlayout: React.FC<{ children: React.ReactNode }> = async ({
   children,

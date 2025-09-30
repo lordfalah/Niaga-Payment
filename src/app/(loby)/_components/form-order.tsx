@@ -52,7 +52,7 @@ import {
   createOrderSchema,
   TCreateOrderInput,
 } from "@/validation/order.schema";
-import { Product, TPayment, TStatusOrder } from "@/generated/prisma";
+import { Product, TPayment, TStatusOrder } from "@prisma/client";
 import { User } from "better-auth";
 import { Badge } from "@/components/ui/badge";
 import { createOrderAction, updateOrderStatus } from "@/actions/order";

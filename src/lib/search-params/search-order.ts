@@ -5,7 +5,7 @@ import {
   parseAsArrayOf,
 } from "nuqs/server";
 import { getSortingStateParser } from "@/lib/parsers";
-import { Order, TPayment, TStatusOrder } from "@/generated/prisma";
+import { Order, TPayment, TStatusOrder } from "@prisma/client";
 import z from "zod";
 import { endOfMonth, startOfMonth } from "date-fns";
 
@@ -19,7 +19,6 @@ export const searchParamsCacheOrder = createSearchParamsCache({
   sort: getSortingStateParser<Order>().withDefault([
     { id: "createdAt", desc: true },
   ]),
-  totalAmount: parseAsInteger,
   customerName: parseAsString.withDefault(""),
   payment: parseAsArrayOf(
     z.enum(Object.values(TPayment) as [TPayment, ...TPayment[]]),

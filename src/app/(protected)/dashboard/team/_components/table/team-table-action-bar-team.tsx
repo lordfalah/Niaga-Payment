@@ -19,7 +19,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { getEnumKeys } from "@/lib/utils";
 import { toast } from "sonner";
-import { Product } from "@/generated/prisma";
+import { Product } from "@prisma/client";
 import { exportTableToCSV } from "@/lib/export";
 import { UserWithRole } from "better-auth/plugins/admin";
 

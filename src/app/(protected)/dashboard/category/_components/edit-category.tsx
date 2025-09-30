@@ -25,7 +25,6 @@ import { getErrorMessage } from "@/lib/handle-error";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AutosizeTextarea } from "@/components/ui/autosize-textarea";
 import { Loader2 } from "lucide-react";
-import { updateProductAction } from "@/actions/product";
 import { useForm } from "react-hook-form";
 
 import {
@@ -36,12 +35,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { IconDotsVertical } from "@tabler/icons-react";
-import { Category } from "@/generated/prisma";
+import { Category } from "@prisma/client";
 import {
   createCategorySchema,
   TCreateCategoryInput,
 } from "@/validation/category.schema";
 import { isObjectLike } from "@/lib/utils";
+import { updateCategoryAction } from "@/actions/category";
 
 const EditCategory: React.FC<{ data: Category }> = ({ data }) => {
   const [open, setOpen] = useState(false);
@@ -60,7 +60,7 @@ const EditCategory: React.FC<{ data: Category }> = ({ data }) => {
         (async () => {
           setIsSubmitting(true);
           try {
-            const res = await updateProductAction(data.id, values);
+            const res = await updateCategoryAction(data.id, values);
 
             if (!res.status && res.errors && typeof isObjectLike(res.errors)) {
               Object.keys(res.errors).forEach((key) => {
@@ -70,7 +70,7 @@ const EditCategory: React.FC<{ data: Category }> = ({ data }) => {
                 });
               });
 
-              throw new Error(res.message || "Failed to create product");
+              throw new Error(res.message || "Failed to create Category");
             }
             setOpen(false);
           } catch (error) {
@@ -81,8 +81,8 @@ const EditCategory: React.FC<{ data: Category }> = ({ data }) => {
           }
         })(),
         {
-          loading: "Saving produk...",
-          success: "Produk berhasil diupdate!",
+          loading: "Saving Category...",
+          success: "Category berhasil diupdate!",
           error: (err) => getErrorMessage(err),
           position: "top-center",
         },
@@ -120,9 +120,9 @@ const EditCategory: React.FC<{ data: Category }> = ({ data }) => {
         {/* Sheet edit */}
         <SheetContent>
           <SheetHeader>
-            <SheetTitle>Edit product</SheetTitle>
+            <SheetTitle>Edit Category</SheetTitle>
             <SheetDescription>
-              Make changes to product here. Click save when done.
+              Make changes to Category here. Click save when done.
             </SheetDescription>
           </SheetHeader>
 
@@ -137,7 +137,7 @@ const EditCategory: React.FC<{ data: Category }> = ({ data }) => {
                   name="name"
                   render={({ field }) => (
                     <FormItem className="col-span-12 space-y-2.5">
-                      <FormLabel>Name Product</FormLabel>
+                      <FormLabel>Name Category</FormLabel>
                       <FormControl>
                         <Input
                           {...field}

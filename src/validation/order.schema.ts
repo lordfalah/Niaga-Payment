@@ -1,4 +1,4 @@
-import { TPayment, TStatusOrder } from "@/generated/prisma";
+import { TPayment, TStatusOrder } from "@prisma/client";
 import z from "zod";
 
 export const orderItemInputSchema = z.object({

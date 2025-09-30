@@ -14,7 +14,7 @@ import {
   DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { TRole } from "@/generated/prisma";
+import { TRole } from "@prisma/client";
 import { auth } from "@/lib/auth";
 import { LogoutEverywhereButton } from "../logout-everywhere";
 import { redirect } from "next/navigation";

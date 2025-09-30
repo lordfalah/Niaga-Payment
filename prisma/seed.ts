@@ -1,5 +1,11 @@
-import { PrismaClient } from "../src/generated/prisma";
-const prisma = new PrismaClient();
+import { PrismaClient } from "@prisma/client";
+
+const globalForPrisma = global as unknown as {
+  prisma: PrismaClient;
+};
+
+const prisma = globalForPrisma.prisma || new PrismaClient();
+
 async function main() {
   console.log("🌱 Start seeding...");
 

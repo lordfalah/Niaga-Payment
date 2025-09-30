@@ -7,8 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import PrintTablePdf from "@/components/data-table/print-table-pdf";
 import TablePdfProduct from "./_components/table/data-table-product-pdf";
-import Link from "next/link";
 import { getCategorys } from "@/actions/category";
+import CreateProductSheet from "./_components/create-product-sheet";
 
 type PageProps = {
   searchParams: Promise<SearchParams>;
@@ -45,9 +45,7 @@ const DashboardPageProduct: React.FC<PageProps> = async ({ searchParams }) => {
             />
           </Suspense>
 
-          <Button size={"sm"} variant={"outline"} asChild>
-            <Link href={"/dashboard/product/build"}>Create</Link>
-          </Button>
+          <CreateProductSheet categorys={resultCategorys} />
         </div>
 
         <DataTableProduct

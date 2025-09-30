@@ -9,6 +9,7 @@ import {
   SheetFooter,
   SheetHeader,
   SheetTitle,
+  SheetTrigger,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import {
@@ -31,18 +32,9 @@ import { cn, isObjectLike } from "@/lib/utils";
 import { NumericFormat } from "react-number-format";
 import { AutosizeTextarea } from "@/components/ui/autosize-textarea";
 import { Check, ChevronsUpDown, Loader2 } from "lucide-react";
-import { deleteProducts, updateProductAction } from "@/actions/product";
+import { createProductAction } from "@/actions/product";
 import { useForm } from "react-hook-form";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuShortcut,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { IconDotsVertical } from "@tabler/icons-react";
-import { Category, Product } from "@/generated/prisma";
+
 import {
   Command,
   CommandEmpty,
@@ -56,30 +48,28 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { Category } from "@prisma/client";
 
-const EditProduct: React.FC<{
-  data: Product & { category: Category | null };
-  categorys: Category[];
-}> = ({ data, categorys }) => {
-  const [open, setOpen] = useState(false);
+const CreateProductSheet: React.FC<{ categorys: Category[] }> = ({
+  categorys,
+}) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const form = useForm<TCreateProductInput>({
     resolver: zodResolver(createProductSchema),
     defaultValues: {
-      name: data.name,
-      price: data.price,
-      description: data.description ?? "",
-      category: data.category?.id,
+      name: "",
+      price: 1000,
+      description: "",
     },
   });
 
   const onSubmit = useCallback(
-    (values: TCreateProductInput) => {
+    (data: TCreateProductInput) => {
       toast.promise(
         (async () => {
           setIsSubmitting(true);
           try {
-            const res = await updateProductAction(data.id, values);
+            const res = await createProductAction(data);
 
             if (!res.status && res.errors && typeof isObjectLike(res.errors)) {
               Object.keys(res.errors).forEach((key) => {
@@ -91,7 +81,9 @@ const EditProduct: React.FC<{
 
               throw new Error(res.message || "Failed to create product");
             }
-            setOpen(false);
+
+            // sukses → reset form
+            form.reset();
           } catch (error) {
             console.error({ error });
             throw error;
@@ -101,65 +93,28 @@ const EditProduct: React.FC<{
         })(),
         {
           loading: "Saving produk...",
-          success: "Produk berhasil diupdate!",
+          success: "Produk berhasil disimpan!",
           error: (err) => getErrorMessage(err),
           position: "top-center",
         },
       );
     },
-    [form, data.id],
+    [form],
   );
 
   return (
-    <Sheet open={open} onOpenChange={setOpen}>
-      {/* Dropdown menu di table */}
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            variant="ghost"
-            className="data-[state=open]:bg-muted text-muted-foreground flex size-8"
-            size="icon"
-          >
-            <IconDotsVertical />
-            <span className="sr-only">Open menu</span>
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-32">
-          <DropdownMenuItem onClick={() => setOpen(true)}>
-            Edit
-          </DropdownMenuItem>
-          <DropdownMenuItem>Make a copy</DropdownMenuItem>
-          <DropdownMenuItem>Favorite</DropdownMenuItem>
-          <DropdownMenuSeparator />
+    <Sheet>
+      <SheetTrigger asChild>
+        <Button variant="outline" size={"sm"}>
+          Create Product
+        </Button>
+      </SheetTrigger>
 
-          <DropdownMenuItem
-            onClick={() => {
-              toast.promise(
-                deleteProducts({
-                  ids: [data.id],
-                }),
-                {
-                  loading: "Loading...",
-                  success: "Product deleted",
-                  error: (err) => getErrorMessage(err),
-                  position: "top-center",
-                },
-              );
-            }}
-            variant="destructive"
-          >
-            Delete
-            <DropdownMenuShortcut>⌘⌫</DropdownMenuShortcut>
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-
-      {/* Sheet edit */}
       <SheetContent>
         <SheetHeader>
-          <SheetTitle>Edit product</SheetTitle>
+          <SheetTitle>Create Product</SheetTitle>
           <SheetDescription>
-            Make changes to product here. Click save when done.
+            Create the product details and save the changes
           </SheetDescription>
         </SheetHeader>
 
@@ -173,7 +128,7 @@ const EditProduct: React.FC<{
                 control={form.control}
                 name="name"
                 render={({ field }) => (
-                  <FormItem className="col-span-12 space-y-2.5">
+                  <FormItem className="space-y-2.5">
                     <FormLabel>Name Product</FormLabel>
                     <FormControl>
                       <Input
@@ -191,7 +146,7 @@ const EditProduct: React.FC<{
                 control={form.control}
                 name="price"
                 render={({ field }) => (
-                  <FormItem className="col-span-12 space-y-2.5">
+                  <FormItem className="space-y-2.5">
                     <FormLabel>Price</FormLabel>
                     <FormControl>
                       <div className="relative z-10 h-fit after:absolute after:top-1/2 after:z-20 after:-translate-y-1/2 after:pl-2 after:text-sm after:content-['Rp.']">
@@ -225,7 +180,7 @@ const EditProduct: React.FC<{
                 control={form.control}
                 name="description"
                 render={({ field }) => (
-                  <FormItem className="col-span-12 space-y-2.5">
+                  <FormItem className="space-y-2.5">
                     <FormLabel>Description</FormLabel>
                     <FormControl>
                       <AutosizeTextarea
@@ -243,7 +198,7 @@ const EditProduct: React.FC<{
                 control={form.control}
                 name="category"
                 render={({ field }) => (
-                  <FormItem className="col-span-12 space-y-2.5">
+                  <FormItem className="w-full space-y-2.5">
                     <FormLabel>Category</FormLabel>
                     <Popover>
                       <PopoverTrigger asChild>
@@ -326,4 +281,4 @@ const EditProduct: React.FC<{
   );
 };
 
-export default EditProduct;
+export default CreateProductSheet;

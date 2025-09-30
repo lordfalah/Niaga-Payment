@@ -2,7 +2,7 @@ import { getServerSession } from "@/lib/get-session";
 import OrderForm from "./_components/form-order";
 import { getProducts } from "@/actions/product";
 import CardLoby from "./_components/card-loby";
-import { TRole } from "@/generated/prisma";
+import { TRole } from "@prisma/client";
 import OrderFormSkeleton from "./_components/form-order-skeleton";
 import { Metadata } from "next";
 

@@ -1,6 +1,6 @@
 "use server";
 
-import { Prisma, Product } from "@/generated/prisma";
+import { Prisma, Product } from "@prisma/client";
 import ActionErrorHandler from "@/lib/action-error-handler";
 import { getErrorMessage } from "@/lib/handle-error";
 import prisma from "@/lib/prisma";

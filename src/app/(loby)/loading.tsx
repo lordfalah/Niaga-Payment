@@ -6,7 +6,7 @@ export default function LoadingRoot() {
     <CardLoby
       title="Niaga Order"
       subTitle={`Made by Mr.fal`}
-      description="Enter your email below to login to your account"
+      description="Wait page is Loading..."
     >
       <FormOrderSkeleton />
     </CardLoby>

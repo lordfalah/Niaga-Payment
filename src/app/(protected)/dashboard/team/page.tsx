@@ -5,7 +5,7 @@ import { headers } from "next/headers";
 import DataTableTeam from "./_components/table/data-table-team";
 import { searchParamsCacheUser } from "@/lib/search-params/search-user";
 import { getServerSession } from "@/lib/get-session";
-import { TRole } from "@/generated/prisma";
+import { TRole } from "@prisma/client";
 
 type PageProps = {
   searchParams: Promise<SearchParams>;

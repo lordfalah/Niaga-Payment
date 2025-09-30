@@ -1,12 +1,15 @@
 "use server";
 
-import { Category, Prisma } from "@/generated/prisma";
+import { Category, Prisma } from "@prisma/client";
 import ActionErrorHandler from "@/lib/action-error-handler";
 import { getErrorMessage } from "@/lib/handle-error";
 import prisma from "@/lib/prisma";
 import { GetCategorySchema } from "@/lib/search-params/search-category";
 import { TActionResult } from "@/types/action.type";
-import { createCategorySchema } from "@/validation/category.schema";
+import {
+  createCategorySchema,
+  updateCategorySchema,
+} from "@/validation/category.schema";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { revalidatePath } from "next/cache";
 import { after, connection } from "next/server";
@@ -106,6 +109,51 @@ export async function createCategoryAction(
     return {
       status: true,
       message: "Produk berhasil dibuat",
+      data: category,
+    };
+  } catch (error) {
+    after(() => {
+      if (error instanceof PrismaClientKnownRequestError) {
+        // Prisma error
+        console.error(ActionErrorHandler.handlePrisma(error));
+      } else {
+        // Default handler
+        console.error(ActionErrorHandler.handleDefault(error));
+      }
+    });
+
+    return {
+      status: false,
+      errors: null,
+      message: getErrorMessage(error),
+    };
+  }
+}
+
+export async function updateCategoryAction(
+  id: string,
+  formData: unknown,
+): Promise<TActionResult<Category>> {
+  try {
+    const parsed = createCategorySchema.partial().safeParse(formData);
+    // pakai partial biar bisa update sebagian field
+
+    if (!parsed.success) {
+      return ActionErrorHandler.handleZod(parsed.error);
+    }
+
+    const category = await prisma.category.update({
+      where: { id },
+      data: {
+        ...parsed.data,
+      },
+    });
+
+    revalidatePath("/dashboard/category");
+
+    return {
+      status: true,
+      message: "Category berhasil diperbarui",
       data: category,
     };
   } catch (error) {

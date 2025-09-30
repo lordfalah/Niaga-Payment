@@ -5,6 +5,7 @@ const LoadingTeam: React.FC = () => {
     <DataTableSkeleton
       className="px-4 py-4 md:py-6 lg:px-6"
       columnCount={8}
+      filterCount={1}
       about="Team"
     />
   );

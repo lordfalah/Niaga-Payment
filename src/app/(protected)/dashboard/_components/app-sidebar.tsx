@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/sidebar";
 import Link from "next/link";
 import { UserWithRole } from "better-auth/plugins/admin";
-import { TRole } from "@/generated/prisma";
+import { TRole } from "@prisma/client";
 
 const data = {
   user: {

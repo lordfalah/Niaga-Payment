@@ -10,21 +10,33 @@ import {
 import { getTotalOrder, getTotalRevenue } from "@/actions/order";
 import { formatToRupiah } from "@/lib/utils";
 import { getTotalUser } from "@/actions/user";
-import { getTotalProduct } from "@/actions/product";
-import { DollarSign, ListOrdered, PackageSearch, UserPlus } from "lucide-react";
+import { DollarSign, ListOrdered, UserPlus } from "lucide-react";
+import { TPayment } from "@prisma/client";
 
 export async function SectionCards() {
-  const [totalRevenue, totalUser, totalOrder, totalProduct] = await Promise.all(
-    [getTotalRevenue(), getTotalUser(), getTotalOrder(), getTotalProduct()],
-  );
+  const [totalRevenueCash, totalRevenueQris, totalUser, totalOrder] =
+    await Promise.all([
+      getTotalRevenue(TPayment.CASH),
+      getTotalRevenue(TPayment.QRIS),
+      getTotalUser(),
+      getTotalOrder(),
+    ]);
 
   const cardData = [
     {
-      description: "Total Revenue",
-      title: `Rp. ${formatToRupiah(totalRevenue)}`,
+      description: "Total Revenue Cash",
+      title: `Rp. ${formatToRupiah(totalRevenueCash)}`,
       icon: DollarSign,
       footerText: "Total revenue collected",
-      footerDescription: "All recorded data",
+      footerDescription: "All recorded data cash",
+    },
+
+    {
+      description: "Total Revenue Qris",
+      title: `Rp. ${formatToRupiah(totalRevenueQris)}`,
+      icon: DollarSign,
+      footerText: "Total revenue collected",
+      footerDescription: "All recorded data qris",
     },
     {
       description: "Total Users",
@@ -38,13 +50,6 @@ export async function SectionCards() {
       title: totalOrder,
       icon: ListOrdered,
       footerText: "Total orders created",
-      footerDescription: "All recorded data",
-    },
-    {
-      description: "Total Product",
-      title: totalProduct,
-      icon: PackageSearch,
-      footerText: "Total products available",
       footerDescription: "All recorded data",
     },
   ];

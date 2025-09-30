@@ -1,164 +1,33 @@
 "use client";
 
-import { Checkbox } from "@/components/ui/checkbox";
-import { ColumnDef } from "@tanstack/react-table";
-import { CalendarSearch, Text } from "lucide-react";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useDataTable } from "@/hooks/use-data-table";
 import { DataTable } from "@/components/data-table/data-table";
-import { formatDateToMonthDayYear, formatToRupiah } from "@/lib/utils";
 import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
-import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
 import { parseAsInteger, useQueryStates } from "nuqs";
 import { DataTableSortList } from "@/components/data-table/data-table-sort-list";
-import { Category, Product } from "@/generated/prisma";
-import EditProduct from "../edit-product";
+import { Category, Product } from "@prisma/client";
 import { ProductTableActionBar } from "./product-table-action-bar";
+import { DeleteProductsDialog } from "./delete-product-dialog";
+import { DataTableRowAction } from "@/types/data-table";
+import { getProductsTableColumns } from "./product-table-columns";
+import UpdateProductSheet from "./update-product-sheet";
 
 const DataTableProduct: React.FC<{
   data: Array<Product & { category: Category | null }>;
   total: number;
   categorys: Category[];
 }> = ({ data, total, categorys }) => {
-  const columns = useMemo<ColumnDef<Product & { category: Category | null }>[]>(
-    () => [
-      {
-        id: "select",
-        header: ({ table }) => (
-          <Checkbox
-            checked={
-              table.getIsAllPageRowsSelected() ||
-              (table.getIsSomePageRowsSelected() && "indeterminate")
-            }
-            onCheckedChange={(value) =>
-              table.toggleAllPageRowsSelected(!!value)
-            }
-            aria-label="Select all"
-          />
-        ),
-        cell: ({ row }) => (
-          <Checkbox
-            checked={row.getIsSelected()}
-            onCheckedChange={(value) => row.toggleSelected(!!value)}
-            aria-label="Select row"
-          />
-        ),
-        size: 32,
-        enableSorting: false,
-        enableHiding: false,
-      },
+  const [rowAction, setRowAction] = useState<DataTableRowAction<
+    Product & { category: Category | null }
+  > | null>(null);
 
-      {
-        id: "no",
-        header: "No",
-        cell: ({ row }) => row.index + 1,
-        size: 32,
-        enableSorting: false,
-        enableHiding: false,
-      },
-
-      {
-        id: "name",
-        accessorKey: "name",
-        header: "Name",
-
-        cell: ({ row }) => (
-          <div className="w-40 text-wrap break-all">{row.original.name}</div>
-        ),
-
-        meta: {
-          label: "Name",
-          placeholder: "Search Name...",
-          variant: "text",
-          icon: Text,
-        },
-
-        enableColumnFilter: true,
-        enableSorting: false,
-      },
-
-      {
-        id: "description",
-        accessorKey: "description",
-        header: "Description",
-
-        cell: ({ row }) => (
-          <div className="w-40 text-wrap break-all">
-            {row.original.description}
-          </div>
-        ),
-
-        meta: {
-          label: "Description",
-        },
-
-        enableColumnFilter: false,
-        enableSorting: false,
-      },
-
-      {
-        id: "price",
-        accessorKey: "price",
-        header: ({ column }) => (
-          <DataTableColumnHeader column={column} title="Price" />
-        ),
-
-        cell: ({ row }) => (
-          <div className="w-28 text-wrap break-all">
-            <p>Rp. {formatToRupiah(row.original.price)}</p>
-          </div>
-        ),
-
-        meta: {
-          label: "Price",
-        },
-
-        enableColumnFilter: true,
-      },
-
-      {
-        id: "category",
-        accessorKey: "category",
-        header: "Category",
-
-        cell: ({ row }) => (
-          <div className="w-28 text-wrap break-all">
-            {row.original.category?.name ?? "Kosong"}
-          </div>
-        ),
-
-        enableColumnFilter: false,
-        enableSorting: false,
-      },
-
-      {
-        id: "createdAt",
-        accessorKey: "createdAt",
-        header: "Date",
-        cell: ({ row }) => (
-          <div className="w-40 text-wrap break-all">
-            <p>{formatDateToMonthDayYear(row.original.createdAt)}</p>
-          </div>
-        ),
-
-        meta: {
-          label: "Date",
-          placeholder: "Search date...",
-          variant: "dateRange",
-          icon: CalendarSearch,
-        },
-
-        enableColumnFilter: true,
-      },
-
-      {
-        id: "actions",
-        cell: ({ row }) => {
-          return <EditProduct categorys={categorys} data={row.original} />;
-        },
-      },
-    ],
-    [categorys],
+  const columns = useMemo(
+    () =>
+      getProductsTableColumns({
+        setRowAction,
+      }),
+    [],
   );
 
   const [params] = useQueryStates({
@@ -201,6 +70,21 @@ const DataTableProduct: React.FC<{
           <DataTableSortList table={table} align="start" />
         </DataTableToolbar>
       </DataTable>
+
+      <UpdateProductSheet
+        open={rowAction?.variant === "update"}
+        onOpenChange={() => setRowAction(null)}
+        product={rowAction?.row.original ?? null}
+        categorys={categorys}
+      />
+
+      <DeleteProductsDialog
+        open={rowAction?.variant === "delete"}
+        onOpenChange={() => setRowAction(null)}
+        products={rowAction?.row.original ? [rowAction?.row.original] : []}
+        showTrigger={false}
+        onSuccess={() => rowAction?.row.toggleSelected(false)}
+      />
     </>
   );
 };

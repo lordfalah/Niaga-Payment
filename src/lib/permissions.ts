@@ -1,4 +1,4 @@
-import { TRole } from "@/generated/prisma";
+import { TRole } from "@prisma/client";
 import { createAccessControl } from "better-auth/plugins/access";
 import { adminAc, defaultStatements } from "better-auth/plugins/admin/access";
 export const statement = {

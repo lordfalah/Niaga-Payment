@@ -5,7 +5,7 @@ import {
   parseAsArrayOf,
 } from "nuqs/server";
 import { getSortingStateParser } from "@/lib/parsers";
-import { Product } from "@/generated/prisma";
+import { Product } from "@prisma/client";
 import z from "zod";
 
 export const searchParamsCacheProduct = createSearchParamsCache({

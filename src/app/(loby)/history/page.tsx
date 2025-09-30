@@ -9,7 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { TRole } from "@/generated/prisma";
+import { TRole } from "@prisma/client";
 import { getServerSession } from "@/lib/get-session";
 import { searchParamsCacheOrder } from "@/lib/search-params/search-order";
 import { Metadata } from "next";

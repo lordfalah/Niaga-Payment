@@ -11,7 +11,7 @@ import {
 } from "@/components/data-table/data-table-action-bar";
 import { Separator } from "@/components/ui/separator";
 import { exportTableToCSV } from "@/lib/export";
-import { Category } from "@/generated/prisma";
+import { Category } from "@prisma/client";
 import { deleteCategorys } from "@/actions/category";
 import { toast } from "sonner";
 

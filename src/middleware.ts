@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { TRole } from "./generated/prisma";
 import { getServerSession } from "./lib/get-session";
+import { TRole } from "@prisma/client";
 
 export async function middleware(request: NextRequest) {
   const session = await getServerSession();

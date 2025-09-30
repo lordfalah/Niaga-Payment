@@ -16,6 +16,7 @@ interface DataTableSkeletonProps extends React.ComponentProps<"div"> {
   cellWidths?: string[];
   withViewOptions?: boolean;
   withPagination?: boolean;
+  withSort?: boolean;
   shrinkZero?: boolean;
 }
 
@@ -26,6 +27,7 @@ export function DataTableSkeleton({
   cellWidths = ["auto"],
   withViewOptions = true,
   withPagination = true,
+  withSort = true,
   shrinkZero = false,
   className,
   ...props
@@ -49,6 +51,9 @@ export function DataTableSkeleton({
             : null}
         </div>
         {withViewOptions ? (
+          <Skeleton className="ml-auto hidden h-7 w-[4.5rem] lg:flex" />
+        ) : null}
+        {withSort ? (
           <Skeleton className="ml-auto hidden h-7 w-[4.5rem] lg:flex" />
         ) : null}
       </div>
@@ -98,7 +103,7 @@ export function DataTableSkeleton({
               <Skeleton className="h-7 w-24" />
               <Skeleton className="h-7 w-[4.5rem]" />
             </div>
-            <div className="flex items-center justify-center font-medium text-sm">
+            <div className="flex items-center justify-center text-sm font-medium">
               <Skeleton className="h-7 w-20" />
             </div>
             <div className="flex items-center gap-2">

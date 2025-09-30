@@ -1,6 +1,6 @@
 "use client";
 
-import { Product } from "@/generated/prisma";
+import { Product } from "@prisma/client";
 import { formatToRupiah } from "@/lib/utils";
 import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
 

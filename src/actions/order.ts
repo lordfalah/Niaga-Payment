@@ -1,6 +1,6 @@
 "use server";
 
-import { Order, Prisma, TPayment, TStatusOrder } from "@/generated/prisma";
+import { Order, Prisma, TPayment, TStatusOrder } from "@prisma/client";
 import ActionErrorHandler from "@/lib/action-error-handler";
 import { getErrorMessage } from "@/lib/handle-error";
 import prisma from "@/lib/prisma";
@@ -16,6 +16,10 @@ import { revalidatePath } from "next/cache";
 import { after, connection } from "next/server";
 import QRCode from "qrcode";
 
+export type TGetOrdersWithFilters = Awaited<
+  ReturnType<typeof getOrdersWithFilters>
+>["data"]["data"][number];
+
 export async function getOrdersWithFilters(
   input: GetOrderSchema,
   userId?: string,
@@ -23,16 +27,8 @@ export async function getOrdersWithFilters(
   await connection();
 
   try {
-    const {
-      page,
-      perPage,
-      sort,
-      totalAmount,
-      customerName,
-      status,
-      createdAt,
-      payment,
-    } = input;
+    const { page, perPage, sort, customerName, status, createdAt, payment } =
+      input;
 
     const skip = (page - 1) * perPage;
 
@@ -50,9 +46,6 @@ export async function getOrdersWithFilters(
         customerName: { contains: customerName, mode: "insensitive" },
       }),
 
-      ...(totalAmount && {
-        totalAmount,
-      }),
       ...(status.length > 0 && {
         status: {
           in: status,
@@ -127,6 +120,7 @@ export async function getOrdersWithFilters(
       data: { data: formattedOrders, total, page, perPage },
     };
   } catch (err) {
+    console.log(err);
     return {
       status: false,
       message: getErrorMessage(err) || "Failed to fetch Orders",
@@ -250,7 +244,7 @@ export async function deleteOrders({ ids }: { ids: string[] }) {
   }
 }
 
-export async function getTotalRevenue() {
+export async function getTotalRevenue(payment: TPayment) {
   await connection();
   try {
     const result = await prisma.order.aggregate({
@@ -258,6 +252,7 @@ export async function getTotalRevenue() {
         totalAmount: true,
       },
       where: {
+        payment,
         status: TStatusOrder.PAID,
       },
     });

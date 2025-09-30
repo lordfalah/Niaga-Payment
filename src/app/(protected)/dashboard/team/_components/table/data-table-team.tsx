@@ -34,7 +34,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { TRole } from "@/generated/prisma";
+import { TRole } from "@prisma/client";
 import { admin } from "@/lib/auth-client";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";

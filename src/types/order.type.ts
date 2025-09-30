@@ -1,4 +1,4 @@
-import { TPayment, TStatusOrder } from "@/generated/prisma";
+import { TPayment, TStatusOrder } from "@prisma/client";
 
 // types/order.ts
 export type LineItem = {

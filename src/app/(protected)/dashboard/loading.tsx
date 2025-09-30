@@ -26,7 +26,7 @@ const LoadingRootDashboard = () => {
           </Button>
         </div>
 
-        <DataTableSkeleton about="Order" columnCount={8} />
+        <DataTableSkeleton about="Order" columnCount={8} filterCount={3} />
       </div>
     </div>
   );

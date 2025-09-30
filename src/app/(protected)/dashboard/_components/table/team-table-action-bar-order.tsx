@@ -19,9 +19,12 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { exportTableToCSV } from "@/lib/export";
 import { toast } from "sonner";
-import { deleteOrders, updateOrders } from "@/actions/order";
-import { OrderWithLineItems } from "@/types/order.type";
-import { TRole, TStatusOrder } from "@/generated/prisma";
+import {
+  deleteOrders,
+  TGetOrdersWithFilters,
+  updateOrders,
+} from "@/actions/order";
+import { TRole, TStatusOrder } from "@prisma/client";
 import { showErrorToast } from "@/lib/handle-error";
 import {
   Select,
@@ -38,7 +41,7 @@ const actions = ["export", "delete", "update-status-transaction"] as const;
 type Action = (typeof actions)[number];
 
 interface OrderTableActionBarProps {
-  table: Table<OrderWithLineItems>;
+  table: Table<TGetOrdersWithFilters>;
 }
 
 export function OrderTableActionBar({ table }: OrderTableActionBarProps) {
