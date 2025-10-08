@@ -52,7 +52,7 @@ import {
   createOrderSchema,
   TCreateOrderInput,
 } from "@/validation/order.schema";
-import { Product, TPayment, TStatusOrder } from "@prisma/client";
+import { Category, Product, TPayment, TStatusOrder } from "@prisma/client";
 import { User } from "better-auth";
 import { Badge } from "@/components/ui/badge";
 import { createOrderAction, updateOrderStatus } from "@/actions/order";
@@ -80,7 +80,11 @@ export default function OrderForm({
   products,
   user,
 }: {
-  products: Array<Pick<Product, "id" | "name" | "price">>;
+  products: Array<
+    Pick<Product, "id" | "name" | "price"> & {
+      category: Pick<Category, "name"> | null;
+    }
+  >;
   user: User;
 }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -358,8 +362,20 @@ export default function OrderForm({
                             ),
                         );
 
-                        const selectedProduct = availableProducts.find(
+                        const selectedProduct = products.find(
                           (p) => p.id === field.value,
+                        );
+
+                        // 🧩 Group produk berdasarkan kategori
+                        const groupedProducts = availableProducts.reduce(
+                          (acc, product) => {
+                            const categoryName =
+                              product.category?.name || "Tanpa Kategori";
+                            if (!acc[categoryName]) acc[categoryName] = [];
+                            acc[categoryName].push(product);
+                            return acc;
+                          },
+                          {} as Record<string, typeof products>,
                         );
 
                         const ProductList = () => (
@@ -369,20 +385,28 @@ export default function OrderForm({
                               <CommandEmpty>
                                 Produk tidak ditemukan.
                               </CommandEmpty>
-                              <CommandGroup>
-                                {availableProducts.map((p) => (
-                                  <CommandItem
-                                    key={p.id}
-                                    value={p.name}
-                                    onSelect={() => {
-                                      field.onChange(p.id);
-                                      setOpen(false);
-                                    }}
+
+                              {Object.entries(groupedProducts).map(
+                                ([categoryName, items]) => (
+                                  <CommandGroup
+                                    key={categoryName}
+                                    heading={categoryName}
                                   >
-                                    {p.name}
-                                  </CommandItem>
-                                ))}
-                              </CommandGroup>
+                                    {items.map((p) => (
+                                      <CommandItem
+                                        key={p.id}
+                                        value={p.name}
+                                        onSelect={() => {
+                                          field.onChange(p.id);
+                                          setOpen(false);
+                                        }}
+                                      >
+                                        {p.name}
+                                      </CommandItem>
+                                    ))}
+                                  </CommandGroup>
+                                ),
+                              )}
                             </CommandList>
                           </Command>
                         );
@@ -391,6 +415,7 @@ export default function OrderForm({
                           <FormItem className="col-span-7">
                             <FormLabel className="ml-1">Produk</FormLabel>
 
+                            {/* 🌐 Desktop version */}
                             {isDesktop ? (
                               <Popover open={open} onOpenChange={setOpen}>
                                 <PopoverTrigger asChild>
@@ -406,14 +431,15 @@ export default function OrderForm({
                                     </Button>
                                   </FormControl>
                                 </PopoverTrigger>
-                                <PopoverContent className="w-[200px] p-0">
+                                <PopoverContent className="w-[250px] p-0">
                                   <ProductList />
                                 </PopoverContent>
                               </Popover>
                             ) : (
+                              // 📱 Mobile version
                               <Drawer open={open} onOpenChange={setOpen}>
                                 <VisuallyHidden>
-                                  <DrawerTitle>Select Product</DrawerTitle>
+                                  <DrawerTitle>Pilih Produk</DrawerTitle>
                                 </VisuallyHidden>
                                 <DrawerTrigger asChild>
                                   <FormControl>
@@ -431,7 +457,7 @@ export default function OrderForm({
                                 <DrawerContent>
                                   <VisuallyHidden>
                                     <DrawerDescription>
-                                      Desc List
+                                      Daftar Produk
                                     </DrawerDescription>
                                   </VisuallyHidden>
 

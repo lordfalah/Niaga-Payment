@@ -11,9 +11,8 @@ import {
 } from "@/components/data-table/data-table-action-bar";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
-import { Category, Product } from "@prisma/client";
 import { exportTableToCSV } from "@/lib/export";
-import { deleteProducts } from "@/actions/product";
+import { deleteProducts, TGetProductsWithFilters } from "@/actions/product";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const actions = ["export", "delete"] as const;
@@ -21,7 +20,7 @@ const actions = ["export", "delete"] as const;
 type Action = (typeof actions)[number];
 
 interface OrderTableActionBarProps {
-  table: Table<Product & { category: Category | null }>;
+  table: Table<TGetProductsWithFilters>;
 }
 
 export function ProductTableActionBar({ table }: OrderTableActionBarProps) {

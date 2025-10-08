@@ -1,8 +1,8 @@
 "use client";
 
-import { Product } from "@prisma/client";
 import { formatToRupiah } from "@/lib/utils";
 import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
+import { TGetProductsWithFilters } from "@/actions/product";
 
 const styles = StyleSheet.create({
   page: {
@@ -75,7 +75,7 @@ const styles = StyleSheet.create({
 const ITEMS_PER_PAGE = 20;
 
 type ProductTablePDFDocumentProps = {
-  data: Product[];
+  data: TGetProductsWithFilters[];
 };
 
 export default function TablePdfProduct({

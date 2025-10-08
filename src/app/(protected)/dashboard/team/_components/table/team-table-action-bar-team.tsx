@@ -2,7 +2,7 @@
 
 import { SelectTrigger } from "@radix-ui/react-select";
 import type { Table } from "@tanstack/react-table";
-import { ArrowUp, CheckCircle2, Download, Trash2 } from "lucide-react";
+import { Download, Trash2 } from "lucide-react";
 import * as React from "react";
 
 import {
@@ -19,17 +19,15 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { getEnumKeys } from "@/lib/utils";
 import { toast } from "sonner";
-import { Product } from "@prisma/client";
+import { TRole } from "@prisma/client";
 import { exportTableToCSV } from "@/lib/export";
 import { UserWithRole } from "better-auth/plugins/admin";
+import { IconUserShield } from "@tabler/icons-react";
+import { deleteUsers, updateUsers } from "@/actions/user";
+import { showErrorToast } from "@/lib/handle-error";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-const actions = [
-  "update-laundry-status",
-  "update-priority",
-  "export",
-  "delete",
-] as const;
+const actions = ["update-role", "export", "delete"] as const;
 
 type Action = (typeof actions)[number];
 
@@ -47,32 +45,24 @@ export function TeamTableActionBar({ table }: OrderTableActionBarProps) {
     [isPending, currentAction],
   );
 
-  // const onOrderUpdate = React.useCallback(
-  //   ({
-  //     field,
-  //     value,
-  //   }: {
-  //     field: "laundryStatus" | "priority";
-  //     value: TLaundryStatus | TPriority;
-  //   }) => {
-  //     setCurrentAction(
-  //       field === "laundryStatus" ? "update-laundry-status" : "update-priority",
-  //     );
-  //     startTransition(async () => {
-  //       const { error } = await updateOrders({
-  //         ids: rows.map((row) => row.original.id),
-  //         [field]: value,
-  //       });
+  const onUserUpdate = React.useCallback(
+    ({ field, value }: { field: "role"; value: TRole }) => {
+      setCurrentAction("update-role");
+      startTransition(async () => {
+        const { error, data } = await updateUsers({
+          ids: rows.map((row) => row.original.id),
+          [field]: value,
+        });
 
-  //       if (error) {
-  //         toast.error(error);
-  //         return;
-  //       }
-  //       toast.success("Orders updated");
-  //     });
-  //   },
-  //   [rows],
-  // );
+        if (error) {
+          showErrorToast(error);
+          return;
+        }
+        toast.success(`Users updated total : ${data.length} `);
+      });
+    },
+    [rows],
+  );
 
   const onTaskExport = React.useCallback(() => {
     setCurrentAction("export");
@@ -84,20 +74,20 @@ export function TeamTableActionBar({ table }: OrderTableActionBarProps) {
     });
   }, [table]);
 
-  // const onTaskDelete = React.useCallback(() => {
-  //   setCurrentAction("delete");
-  //   startTransition(async () => {
-  //     const { error } = await deleteOrders({
-  //       ids: rows.map((row) => row.original.id),
-  //     });
+  const onTaskDelete = React.useCallback(() => {
+    setCurrentAction("delete");
+    startTransition(async () => {
+      const { error } = await deleteUsers({
+        ids: rows.map((row) => row.original.id),
+      });
 
-  //     if (error) {
-  //       toast.error(error);
-  //       return;
-  //     }
-  //     table.toggleAllRowsSelected(false);
-  //   });
-  // }, [rows, table]);
+      if (error) {
+        toast.error(error);
+        return;
+      }
+      table.toggleAllRowsSelected(false);
+    });
+  }, [rows, table]);
 
   return (
     <DataTableActionBar table={table} visible={rows.length > 0}>
@@ -107,53 +97,35 @@ export function TeamTableActionBar({ table }: OrderTableActionBarProps) {
         className="hidden data-[orientation=vertical]:h-5 sm:block"
       />
       <div className="flex items-center gap-1.5">
-        <Select>
+        <Select
+          onValueChange={(value: TRole) =>
+            onUserUpdate({ field: "role", value })
+          }
+        >
           <SelectTrigger asChild>
             <DataTableActionBarAction
               size="icon"
-              tooltip="Update Status Laundry"
-              isPending={getIsActionPending("update-laundry-status")}
+              tooltip="Update Role"
+              isPending={getIsActionPending("update-role")}
             >
-              <CheckCircle2 />
+              <IconUserShield />
             </DataTableActionBarAction>
           </SelectTrigger>
-          {/* <SelectContent align="center">
+          <SelectContent align="center">
             <SelectGroup>
-              {getEnumKeys(TLaundryStatus).map((status) => (
-                <SelectItem key={status} value={status} className="capitalize">
-                  {status}
-                </SelectItem>
-              ))}
+              {getEnumKeys(TRole)
+                .filter((role) => role !== TRole.AUTHOR)
+                .map((role) => (
+                  <SelectItem key={role} value={role} className="capitalize">
+                    {role}
+                  </SelectItem>
+                ))}
             </SelectGroup>
-          </SelectContent> */}
-        </Select>
-        <Select>
-          <SelectTrigger asChild>
-            <DataTableActionBarAction
-              size="icon"
-              tooltip="Update priority"
-              isPending={getIsActionPending("update-priority")}
-            >
-              <ArrowUp />
-            </DataTableActionBarAction>
-          </SelectTrigger>
-          {/* <SelectContent align="center">
-            <SelectGroup>
-              {getEnumKeys(TPriority).map((priority) => (
-                <SelectItem
-                  key={priority}
-                  value={priority}
-                  className="capitalize"
-                >
-                  {priority}
-                </SelectItem>
-              ))}
-            </SelectGroup>
-          </SelectContent> */}
+          </SelectContent>
         </Select>
         <DataTableActionBarAction
           size="icon"
-          tooltip="Export Orders"
+          tooltip="Export Teams"
           isPending={getIsActionPending("export")}
           onClick={onTaskExport}
         >
@@ -161,8 +133,9 @@ export function TeamTableActionBar({ table }: OrderTableActionBarProps) {
         </DataTableActionBarAction>
         <DataTableActionBarAction
           size="icon"
-          tooltip="Delete Orders"
+          tooltip="Delete Teams"
           isPending={getIsActionPending("delete")}
+          onClick={onTaskDelete}
         >
           <Trash2 />
         </DataTableActionBarAction>

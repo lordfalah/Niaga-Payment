@@ -26,30 +26,30 @@ import {
   DrawerTrigger,
 } from "@/components/ui/drawer";
 import { useMediaQuery } from "@/hooks/use-media-query";
-import { deleteProducts, TGetProductsWithFilters } from "@/actions/product";
-import { Product } from "@prisma/client";
 import { getErrorMessage } from "@/lib/handle-error";
+import { UserWithRole } from "better-auth/plugins/admin";
+import { deleteUsers } from "@/actions/user";
 
-interface DeleteProductsDialogProps
+interface DeleteOrderDialogProps
   extends React.ComponentPropsWithoutRef<typeof Dialog> {
-  products: Row<TGetProductsWithFilters>["original"][];
+  users: Row<UserWithRole>["original"][];
   showTrigger?: boolean;
   onSuccess?: () => void;
 }
 
-export function DeleteProductsDialog({
-  products,
+export function DeleteTeamsDialog({
+  users,
   showTrigger = true,
   onSuccess,
   ...props
-}: DeleteProductsDialogProps) {
+}: DeleteOrderDialogProps) {
   const [isDeletePending, startDeleteTransition] = React.useTransition();
   const isDesktop = useMediaQuery("(min-width: 640px)");
 
   function onDelete() {
     startDeleteTransition(async () => {
-      const { error } = await deleteProducts({
-        ids: products.map((task) => task.id),
+      const { error } = await deleteUsers({
+        ids: users.map((task) => task.id),
       });
 
       if (error) {
@@ -58,7 +58,7 @@ export function DeleteProductsDialog({
       }
 
       props.onOpenChange?.(false);
-      toast.success("Products deleted", { position: "top-center" });
+      toast.success("Teams deleted", { position: "top-center" });
       onSuccess?.();
     });
   }
@@ -70,7 +70,7 @@ export function DeleteProductsDialog({
           <DialogTrigger asChild>
             <Button variant="outline" size="sm">
               <Trash className="mr-2 size-4" aria-hidden="true" />
-              Delete ({products.length})
+              Delete ({users.length})
             </Button>
           </DialogTrigger>
         ) : null}
@@ -79,9 +79,8 @@ export function DeleteProductsDialog({
             <DialogTitle>Are you absolutely sure?</DialogTitle>
             <DialogDescription>
               This action cannot be undone. This will permanently delete your{" "}
-              <span className="font-medium">{products.length}</span>
-              {products.length === 1 ? " product" : " products"} from our
-              servers.
+              <span className="font-medium">{users.length}</span>
+              {users.length === 1 ? " team" : " teams"} from our servers.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2 sm:space-x-0">
@@ -114,7 +113,7 @@ export function DeleteProductsDialog({
         <DrawerTrigger asChild>
           <Button variant="outline" size="sm">
             <Trash className="mr-2 size-4" aria-hidden="true" />
-            Delete ({products.length})
+            Delete ({users.length})
           </Button>
         </DrawerTrigger>
       ) : null}
@@ -123,8 +122,8 @@ export function DeleteProductsDialog({
           <DrawerTitle>Are you absolutely sure?</DrawerTitle>
           <DrawerDescription>
             This action cannot be undone. This will permanently delete your{" "}
-            <span className="font-medium">{products.length}</span>
-            {products.length === 1 ? " product" : " products"} from our servers.
+            <span className="font-medium">{users.length}</span>
+            {users.length === 1 ? " Team" : " Teams"} from our servers.
           </DrawerDescription>
         </DrawerHeader>
         <DrawerFooter className="gap-2 sm:space-x-0">

@@ -16,22 +16,18 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { formatDate } from "@/lib/format";
 import type { DataTableRowAction } from "@/types/data-table";
-import { Category, Product } from "@prisma/client";
 import { formatToRupiah } from "@/lib/utils";
+import { TGetProductsWithFilters } from "@/actions/product";
 
 interface GetProductTableColumnsProps {
   setRowAction: React.Dispatch<
-    React.SetStateAction<DataTableRowAction<
-      Product & { category: Category | null }
-    > | null>
+    React.SetStateAction<DataTableRowAction<TGetProductsWithFilters> | null>
   >;
 }
 
 export function getProductsTableColumns({
   setRowAction,
-}: GetProductTableColumnsProps): ColumnDef<
-  Product & { category: Category | null }
->[] {
+}: GetProductTableColumnsProps): ColumnDef<TGetProductsWithFilters>[] {
   return [
     {
       id: "select",

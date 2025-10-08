@@ -14,6 +14,10 @@ import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { revalidatePath } from "next/cache";
 import { after, connection } from "next/server";
 
+export type TGetProductsWithFilters = Awaited<
+  ReturnType<typeof getProductsWithFilters>
+>["data"]["data"][number];
+
 export async function getProductsWithFilters(input: GetProductSchema) {
   await connection();
 
@@ -53,8 +57,18 @@ export async function getProductsWithFilters(input: GetProductSchema) {
         orderBy,
         skip,
         take: perPage,
-        include: {
-          category: true,
+        select: {
+          id: true,
+          name: true,
+          description: true,
+          price: true,
+          createdAt: true,
+          category: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
         },
       }),
       prisma.product.count({ where }),
@@ -83,6 +97,11 @@ export async function getProducts() {
         id: true,
         name: true,
         price: true,
+        category: {
+          select: {
+            name: true,
+          },
+        },
       },
     });
 

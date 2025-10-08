@@ -15,14 +15,23 @@ import { IconDotsVertical } from "@tabler/icons-react";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { formatToRupiah } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
-import { OrderWithLineItems } from "@/types/order.type";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { TGetOrdersWithFilters } from "@/actions/order";
+import { Row } from "@tanstack/react-table";
+import { Dialog } from "@radix-ui/react-dialog";
 
-const DetailOrder: React.FC<{
-  data: OrderWithLineItems;
-}> = ({ data }) => {
+interface DetailOrderDialogProps
+  extends React.ComponentPropsWithoutRef<typeof Dialog> {
+  order: Row<TGetOrdersWithFilters>["original"] | undefined;
+  showTrigger?: boolean;
+}
+
+const DetailOrderDrawer: React.FC<DetailOrderDialogProps> = ({
+  order,
+  ...props
+}) => {
   return (
-    <Drawer>
+    <Drawer {...props}>
       {/* Tombol Favorite yang membuka Drawer */}
       <DrawerTrigger asChild>
         <Button
@@ -38,7 +47,7 @@ const DetailOrder: React.FC<{
       <DrawerContent className="h-1/2">
         <div className="mx-auto h-1/2 w-full max-w-2xl px-4 sm:px-0">
           <DrawerHeader>
-            <DrawerTitle>Order Customer : {data.customerName}</DrawerTitle>
+            <DrawerTitle>Order Customer : {order?.customerName}</DrawerTitle>
             <DrawerDescription>
               Detail Order Product by Customer.
             </DrawerDescription>
@@ -46,7 +55,7 @@ const DetailOrder: React.FC<{
           <Card className="from-primary/5 to-card dark:bg-card mx-auto h-full w-full bg-gradient-to-t shadow-xs">
             <ScrollArea className="h-full w-full rounded-md">
               <CardContent className="space-y-1.5 px-4 sm:px-6">
-                {data.lineItems.map(({ price, product, quantity, id }) => (
+                {order?.lineItems.map(({ price, product, quantity, id }) => (
                   <Fragment key={id}>
                     <div className="gap grid grid-cols-2 space-y-1">
                       <div className="self-center">
@@ -86,4 +95,4 @@ const DetailOrder: React.FC<{
   );
 };
 
-export default DetailOrder;
+export default DetailOrderDrawer;

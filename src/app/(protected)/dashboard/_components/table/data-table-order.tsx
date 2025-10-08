@@ -6,11 +6,12 @@ import { DataTable } from "@/components/data-table/data-table";
 import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
 import { parseAsInteger, useQueryStates } from "nuqs";
 import { DataTableSortList } from "@/components/data-table/data-table-sort-list";
-import { OrderTableActionBar } from "./team-table-action-bar-order";
 import { DataTableRowAction } from "@/types/data-table";
 import { getOrdersTableColumns } from "./order-table-columns";
 import { DeleteOrdersDialog } from "./delete-order-dialog";
 import { TGetOrdersWithFilters } from "@/actions/order";
+import DetailOrderDrawer from "./detail-order-drawer";
+import { OrderTableActionBar } from "./order-table-action-bar-order";
 
 const DataTableOrder: React.FC<{
   data: Array<TGetOrdersWithFilters>;
@@ -69,6 +70,12 @@ const DataTableOrder: React.FC<{
           <DataTableSortList table={table} align="start" />
         </DataTableToolbar>
       </DataTable>
+
+      <DetailOrderDrawer
+        open={rowAction?.variant === "view"}
+        onOpenChange={() => setRowAction(null)}
+        order={rowAction?.row.original ?? undefined}
+      />
 
       <DeleteOrdersDialog
         open={rowAction?.variant === "delete"}

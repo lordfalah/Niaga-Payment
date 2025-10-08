@@ -181,9 +181,9 @@ export function getOrdersTableColumns({
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-40">
               <DropdownMenuItem
-                onSelect={() => setRowAction({ row, variant: "update" })}
+                onSelect={() => setRowAction({ row, variant: "view" })}
               >
-                Edit
+                Detail
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem

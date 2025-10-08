@@ -1,11 +1,11 @@
 import { SearchParams } from "nuqs";
 import React from "react";
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
 import DataTableTeam from "./_components/table/data-table-team";
 import { searchParamsCacheUser } from "@/lib/search-params/search-user";
 import { getServerSession } from "@/lib/get-session";
 import { TRole } from "@prisma/client";
+import { unauthorized } from "next/navigation";
+import { getListUsers } from "@/actions/user";
 
 type PageProps = {
   searchParams: Promise<SearchParams>;
@@ -14,24 +14,18 @@ type PageProps = {
 const DashboardPageTeam: React.FC<PageProps> = async ({ searchParams }) => {
   const search = searchParamsCacheUser.parse(await searchParams);
 
-  const [{ users, total }, session] = await Promise.all([
-    auth.api.listUsers({
-      query: {
-        searchValue: search.name,
-        searchField: "name",
-        searchOperator: "contains",
-        limit: search.perPage,
-        offset: (search.page - 1) * search.perPage,
-        sortBy: search.sort?.[0]?.id || "createdAt",
-        sortDirection: search.sort?.[0]?.desc ? "desc" : "asc",
-      },
-      headers: await headers(),
-    }),
+  const [session, { data: listUser }] = await Promise.all([
     getServerSession(),
+    getListUsers(search),
   ]);
 
-  if (!session) throw new Error("Not Authorized");
-  const filterUsers = users.filter(({ role }) => {
+  if (
+    !session ||
+    session.user.role === TRole.USER ||
+    session.user.role === TRole.ADMIN
+  )
+    unauthorized();
+  const filterUsers = listUser.data.filter(({ role }) => {
     if (session.user.role === TRole.AUTHOR) {
       // Author tidak boleh lihat author lain
       return role !== TRole.AUTHOR;
@@ -52,7 +46,7 @@ const DashboardPageTeam: React.FC<PageProps> = async ({ searchParams }) => {
         <DataTableTeam
           dataUser={session.user}
           data={filterUsers}
-          total={total}
+          total={listUser.total}
         />
       </div>
     </div>

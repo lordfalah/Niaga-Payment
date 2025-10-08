@@ -31,10 +31,10 @@ import {
   SelectContent,
   SelectGroup,
   SelectItem,
-  SelectTrigger,
 } from "@/components/ui/select";
 import { getEnumKeys } from "@/lib/utils";
 import { useSession } from "@/lib/auth-client";
+import { SelectTrigger } from "@radix-ui/react-select";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const actions = ["export", "delete", "update-status-transaction"] as const;
@@ -115,13 +115,11 @@ export function OrderTableActionBar({ table }: OrderTableActionBarProps) {
             onTaskUpdate({ field: "status", value })
           }
         >
-          <SelectTrigger className="border-secondary !bg-secondary/50 !h-fit p-1 [&>svg:last-of-type]:hidden">
+          <SelectTrigger asChild>
             <DataTableActionBarAction
-              asChild
               size="icon"
               tooltip="Update Status Transaction"
               isPending={getIsActionPending("update-status-transaction")}
-              className="!size-5"
             >
               <CheckCircle2 />
             </DataTableActionBarAction>

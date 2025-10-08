@@ -31,9 +31,12 @@ import { cn, isObjectLike } from "@/lib/utils";
 import { NumericFormat } from "react-number-format";
 import { AutosizeTextarea } from "@/components/ui/autosize-textarea";
 import { Check, ChevronsUpDown, Loader2 } from "lucide-react";
-import { updateProductAction } from "@/actions/product";
+import {
+  TGetProductsWithFilters,
+  updateProductAction,
+} from "@/actions/product";
 import { useForm } from "react-hook-form";
-import { Category, Product } from "@prisma/client";
+import { Category } from "@prisma/client";
 import {
   Command,
   CommandEmpty,
@@ -50,7 +53,7 @@ import {
 
 interface UpdateProductSheetProps
   extends React.ComponentPropsWithRef<typeof Sheet> {
-  product: (Product & { category: Category | null }) | null;
+  product: TGetProductsWithFilters | null;
   categorys: Category[];
 }
 
@@ -76,7 +79,7 @@ const UpdateProductSheet: React.FC<UpdateProductSheetProps> = ({
         name: product.name ?? "",
         price: product.price ?? 0,
         description: product.description ?? "",
-        category: product.categoryId ?? "",
+        category: product.category?.id ?? "",
       });
     }
   }, [product, form]);

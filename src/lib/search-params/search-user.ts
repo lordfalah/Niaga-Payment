@@ -17,6 +17,6 @@ export const searchParamsCacheUser = createSearchParamsCache({
   name: parseAsString.withDefault(""),
 });
 
-export type GetProductSchema = Awaited<
+export type TGetUserSchema = Awaited<
   ReturnType<typeof searchParamsCacheUser.parse>
 >;

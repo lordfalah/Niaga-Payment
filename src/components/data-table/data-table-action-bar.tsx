@@ -5,7 +5,7 @@ import { Loader, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import * as React from "react";
 import * as ReactDOM from "react-dom";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import {
   Tooltip,
@@ -13,7 +13,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { Slot } from "@radix-ui/react-slot";
 
 interface DataTableActionBarProps<TData>
   extends React.ComponentProps<typeof motion.div> {
@@ -93,27 +92,22 @@ function DataTableActionBarAction({
   disabled,
   className,
   children,
-  asChild = false,
   ...props
 }: DataTableActionBarActionProps) {
-  const Comp = asChild ? Slot : "button";
-
   const trigger = (
-    <Comp
+    <Button
+      variant="secondary"
+      size={size}
       className={cn(
-        "!border-secondary !bg-secondary/50 !hover:bg-secondary/70 ![&>svg]:size-3.5 !gap-1.5 !border",
-        size === "icon" ? "!size-7" : "!h-7",
-        buttonVariants({
-          variant: "secondary",
-          size,
-        }),
+        "border-secondary bg-secondary/50 hover:bg-secondary/70 gap-1.5 border [&>svg]:size-3.5",
+        size === "icon" ? "size-7" : "h-7",
         className,
       )}
       disabled={disabled || isPending}
       {...props}
     >
       {isPending ? <Loader className="animate-spin" /> : children}
-    </Comp>
+    </Button>
   );
 
   if (!tooltip) return trigger;

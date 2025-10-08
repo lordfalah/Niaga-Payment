@@ -6,21 +6,21 @@ import { DataTable } from "@/components/data-table/data-table";
 import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
 import { parseAsInteger, useQueryStates } from "nuqs";
 import { DataTableSortList } from "@/components/data-table/data-table-sort-list";
-import { Category, Product } from "@prisma/client";
+import { Category } from "@prisma/client";
 import { ProductTableActionBar } from "./product-table-action-bar";
 import { DeleteProductsDialog } from "./delete-product-dialog";
 import { DataTableRowAction } from "@/types/data-table";
 import { getProductsTableColumns } from "./product-table-columns";
 import UpdateProductSheet from "./update-product-sheet";
+import { TGetProductsWithFilters } from "@/actions/product";
 
 const DataTableProduct: React.FC<{
-  data: Array<Product & { category: Category | null }>;
+  data: Array<TGetProductsWithFilters>;
   total: number;
   categorys: Category[];
 }> = ({ data, total, categorys }) => {
-  const [rowAction, setRowAction] = useState<DataTableRowAction<
-    Product & { category: Category | null }
-  > | null>(null);
+  const [rowAction, setRowAction] =
+    useState<DataTableRowAction<TGetProductsWithFilters> | null>(null);
 
   const columns = useMemo(
     () =>
